@@ -1,6 +1,6 @@
 # 第 05 课：评测集 —— 给 Agent 加一道「门禁」
 
-对应提交：见本课推送后的 `main` 最新 commit  
+对应提交：[`641a1b3`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/641a1b3)  
 相关 Issue：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day5  
 前置：[02 · 加工具](./02-add-agent-tool.md) · [03 · 超时重试](./03-timeout-retry.md) · [04 · 强制超时练习](./04-frontend-timeout-drill.md)
 
