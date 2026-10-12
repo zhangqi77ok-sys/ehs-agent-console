@@ -1,6 +1,6 @@
 # 第 06 课：控制台打磨 —— 让 Demo / 面试更好讲
 
-对应提交：见本文件末尾「对应提交」（推送后回填）  
+对应提交：[`59e420f`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/59e420f)  
 相关 Issue：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day6  
 前置：[01 · SSE](./01-sse-agent-steps.md) · [03 · 超时重试](./03-timeout-retry.md) · [05 · 评测门禁](./05-eval-set.md)
 
@@ -99,4 +99,4 @@ cd backend && source .venv/bin/activate && python scripts/run_eval.py -v
 
 ## 对应提交
 
-推送后回填 SHA（本轮 Day6 功能提交）。
+[`59e420f`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/59e420f)

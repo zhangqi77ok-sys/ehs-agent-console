@@ -13,7 +13,7 @@
 | [03](./03-timeout-retry.md) | 超时与重试 —— 让 Agent 调用更可靠 | `643607c` · Week1 Day4 · LLM/工具超时 + 退避重试 + SSE note/error |
 | [04](./04-frontend-timeout-drill.md) | 前端「强制超时」练习 —— 不用改 .env 也能看见重试 | `8587de5` · Week1 Day4 跟练 · force_timeout 按请求故障注入 |
 | [05](./05-eval-set.md) | 评测集 —— 给 Agent 加一道「门禁」 | `641a1b3` · Week1 Day5 · `eval/cases.json` + `scripts/run_eval.py` |
-| [06](./06-polish.md) | 控制台打磨 —— Demo / 面试更好讲 | Week1 Day6 · 顶栏状态 / 预算熔断 / 错误文案 / 评测露出 |
+| [06](./06-polish.md) | 控制台打磨 —— Demo / 面试更好讲 | `59e420f` · Week1 Day6 · 顶栏状态 / 预算熔断 / 错误文案 / 评测露出 |
 | [07](./07-interview.md) | 面试复盘 —— 把本仓库讲成 Offer 故事 | Week1 Day7 · 见 [interview.md](../interview.md) |
 
 ## 建议学习顺序
