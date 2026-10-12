@@ -18,6 +18,9 @@
 | 开整改单 | `create_corrective_ticket` |
 | 法规摘要 | `search_regulations`（对样例 markdown 做关键词 stub） |
 | 可视化（SSE） | 左侧对话，右侧**实时**刷步骤 / 工具 / 预算（`POST /api/chat`） |
+| 可靠性 | LLM/工具超时 + 退避重试；前端「强制超时」练习 |
+| 评测门禁 | `backend/eval/cases.json` + `scripts/run_eval.py`（真实 LLM） |
+| Demo 打磨 | 顶栏健康/预算/评测 chip；预算熔断着色；错误可行动提示 |
 
 试试这些问题：
 
@@ -92,12 +95,27 @@ cd frontend && npm run dev
 
 ## 面试可以怎么讲
 
+完整讲法（30 秒故事、架构、Q&A、Demo 剧本）见 **[docs/interview.md](docs/interview.md)**。
+
+速记：
+
 1. **问题**：EHS 现场要查台账、开单、对照制度，人工慢且难追踪 Agent 决策过程。
-2. **方案**：手写 ReAct 风格循环；工具边界清晰；前端把每一步暴露出来（可观测）。
+2. **方案**：手写 ReAct 风格循环；工具边界清晰；SSE 把每一步暴露出来（可观测）。
 3. **取舍**：默认真实模型；台账先内存示例；RAG 先做关键词 stub，Week2 换向量库。
-4. **工程背景**：后端拆分、接口契约、预算熔断（最大步数）——Java/企业级经验迁到 Python Agent。
+4. **工程信号**：步数预算熔断、超时退避重试、5 条评测脚本门禁、控制台状态/错误可行动。
 
 更细的设计见 [docs/architecture.md](docs/architecture.md)。
+
+## Week1 进度
+
+| Day | 内容 | 状态 |
+|-----|------|------|
+| 1–2 | 脚手架 + 真实 LLM + SSE 步骤可视化 | ✅ |
+| 3 | `list_open_hazards` 工具 | ✅ |
+| 4 | 超时/重试 + 前端强制超时练习 | ✅ |
+| 5 | 评测集门禁（5 cases） | ✅ |
+| 6 | 控制台打磨（状态栏/预算熔断/错误文案/评测露出） | ✅ |
+| 7 | [面试讲法](docs/interview.md) | ✅ |
 
 ## 教学文档
 
@@ -108,6 +126,8 @@ cd frontend && npm run dev
 - [03 · 超时与重试](docs/lessons/03-timeout-retry.md)
 - [04 · 前端「强制超时」练习](docs/lessons/04-frontend-timeout-drill.md)
 - [05 · 评测集（门禁）](docs/lessons/05-eval-set.md)
+- [06 · 控制台打磨](docs/lessons/06-polish.md)
+- [07 · 面试复盘](docs/lessons/07-interview.md) → 主文 [docs/interview.md](docs/interview.md)
 
 ## 评测门禁（Week1 Day5）
 

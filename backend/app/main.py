@@ -15,7 +15,7 @@ from .agent.loop import run_agent, stream_agent
 from .config import settings
 from .tools.hazard_ledger import list_tickets, query_hazard_ledger
 
-app = FastAPI(title="EHS Agent Console", version="0.3.1")
+app = FastAPI(title="EHS Agent Console", version="0.3.2")
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,6 +41,8 @@ class ChatResponse(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    from .tools.registry import TOOLS
+
     return {
         "status": "ok",
         "llm_provider": settings.llm_provider,
@@ -48,6 +50,10 @@ def health() -> dict[str, Any]:
         "llm_max_retries": settings.llm_max_retries,
         "llm_retry_backoff_s": settings.llm_retry_backoff_s,
         "tool_timeout_s": settings.tool_timeout_s,
+        "max_agent_steps": settings.max_agent_steps,
+        "tool_count": len(TOOLS),
+        "eval_cases": "backend/eval/cases.json",
+        "eval_cmd": "python scripts/run_eval.py -v",
     }
 
 

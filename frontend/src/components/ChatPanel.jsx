@@ -12,7 +12,9 @@ export default function ChatPanel({
   loading,
   streamingHint,
   onSend,
+  onClear,
   reliabilityInfo,
+  lastError,
 }) {
   const [text, setText] = useState("");
   const [forceTimeout, setForceTimeout] = useState(false);
@@ -41,11 +43,31 @@ export default function ChatPanel({
 
   return (
     <div className="panel">
-      <div className="panel-title">对话</div>
+      <div className="panel-title">
+        对话
+        <button
+          type="button"
+          className="clear-btn"
+          disabled={loading || messages.length === 0}
+          onClick={onClear}
+          title="清空对话与步骤"
+        >
+          清空
+        </button>
+      </div>
       <div className="chat-log">
         {messages.length === 0 && (
           <div className="empty">
-            问一句隐患相关的问题，右侧会<strong>实时</strong>显示 Agent 步骤与工具调用。
+            <p>
+              问一句隐患相关的问题，右侧会<strong>实时</strong>显示 Agent 步骤与工具调用。
+            </p>
+            <ul className="empty-list">
+              <li>查台账 / 未闭环隐患 / 开整改单 / 法规摘要</li>
+              <li>顶栏可看后端是否在线、LLM、步数预算、评测门禁</li>
+              <li>
+                回归：<code>cd backend && python scripts/run_eval.py -v</code>
+              </li>
+            </ul>
           </div>
         )}
         {messages.map((m, i) => (
@@ -57,6 +79,12 @@ export default function ChatPanel({
           <div className="bubble assistant streaming">{streamingHint}</div>
         )}
       </div>
+      {lastError && !loading ? (
+        <div className="error-banner" role="alert">
+          <strong>本轮异常</strong>
+          <pre>{lastError}</pre>
+        </div>
+      ) : null}
       <div className="hints">
         {HINTS.map((h) => (
           <button key={h} type="button" disabled={loading} onClick={() => sendHint(h)}>
