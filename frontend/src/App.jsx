@@ -39,6 +39,13 @@ export default function App() {
           setSteps((prev) => [...prev, payload]);
         } else if (eventName === "budget") {
           setBudget(payload);
+        } else if (eventName === "note") {
+          if (payload.note === "llm_retry") {
+            setStreamingHint(
+              `LLM 重试 ${payload.attempt}/${payload.max_attempts}：${payload.reason || ""}`
+            );
+          }
+          setSteps((prev) => [...prev, payload]);
         }
       });
 

@@ -10,12 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from .agent.llm import LLMConfigError
+from .agent.llm import LLMCallError, LLMConfigError
 from .agent.loop import run_agent, stream_agent
 from .config import settings
 from .tools.hazard_ledger import list_tickets, query_hazard_ledger
 
-app = FastAPI(title="EHS Agent Console", version="0.2.0")
+app = FastAPI(title="EHS Agent Console", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,7 +56,7 @@ def api_tickets() -> dict:
 async def api_chat(body: ChatRequest) -> StreamingResponse:
     """Primary chat endpoint: SSE stream of agent steps (live).
 
-    Events: step_start | tool_call | tool_result | final | budget | done | error
+    Events: step_start | tool_call | tool_result | final | budget | note | done | error
     """
 
     async def event_gen():
@@ -66,7 +66,7 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
                     f"event: {evt['event']}\n"
                     f"data: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
                 )
-        except LLMConfigError as exc:
+        except (LLMConfigError, LLMCallError) as exc:
             yield f"event: error\ndata: {json.dumps({'detail': str(exc)}, ensure_ascii=False)}\n\n"
         except Exception as exc:  # noqa: BLE001
             yield f"event: error\ndata: {json.dumps({'detail': str(exc)}, ensure_ascii=False)}\n\n"
@@ -87,6 +87,6 @@ async def api_chat_complete(body: ChatRequest) -> ChatResponse:
     """Non-stream JSON (scripts / smoke tests). Prefer /api/chat for the UI."""
     try:
         result = await run_agent(body.message, body.history)
-    except LLMConfigError as exc:
+    except (LLMConfigError, LLMCallError) as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return ChatResponse(**result)

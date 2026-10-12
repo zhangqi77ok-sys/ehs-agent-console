@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, AsyncIterator
 from uuid import uuid4
 
 from ..config import settings
-from ..tools.registry import TOOL_SCHEMAS, run_tool
+from ..tools.registry import TOOL_SCHEMAS, run_tool_async
 from . import llm
+from .llm import LLMCallError, LLMConfigError
 
 
 async def run_agent(message: str, history: list[dict] | None = None) -> dict[str, Any]:
@@ -18,12 +20,14 @@ async def run_agent(message: str, history: list[dict] | None = None) -> dict[str
     async for evt in stream_agent(message, history):
         name = evt["event"]
         data = evt["data"]
-        if name in ("tool_call", "tool_result", "final"):
+        if name in ("tool_call", "tool_result", "final", "note"):
             steps.append(data)
         if name == "final":
             reply = data.get("content") or ""
         if name == "budget":
             budget = data
+        if name == "error":
+            reply = data.get("detail") or reply
         if name == "done":
             reply = data.get("reply") or reply
             budget = data.get("budget") or budget
@@ -57,7 +61,64 @@ async def stream_agent(
             "data": {"used": budget_used, "max": budget_max, "unit": "steps"},
         }
 
-        decision = await llm.complete(message, hist, tool_results, TOOL_SCHEMAS)
+        note_q: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+
+        async def on_retry(attempt: int, max_attempts: int, reason: str) -> None:
+            await note_q.put(
+                {
+                    "index": budget_used,
+                    "kind": "note",
+                    "note": "llm_retry",
+                    "attempt": attempt,
+                    "max_attempts": max_attempts,
+                    "reason": reason,
+                }
+            )
+
+        decision_task = asyncio.create_task(
+            llm.complete(message, hist, tool_results, TOOL_SCHEMAS, on_retry=on_retry)
+        )
+
+        # Drain retry notes while the LLM call (and its backoff sleeps) is in flight.
+        while not decision_task.done():
+            try:
+                note = await asyncio.wait_for(note_q.get(), timeout=0.15)
+            except asyncio.TimeoutError:
+                continue
+            steps.append(note)
+            yield {"event": "note", "data": note}
+
+        while not note_q.empty():
+            note = note_q.get_nowait()
+            steps.append(note)
+            yield {"event": "note", "data": note}
+
+        try:
+            decision = decision_task.result()
+        except (LLMConfigError, LLMCallError) as exc:
+            detail = str(exc)
+            err = {"detail": detail, "index": budget_used}
+            yield {"event": "error", "data": err}
+            fail_step = {
+                "index": budget_used,
+                "kind": "final",
+                "content": f"调用失败：{detail}",
+            }
+            steps.append(fail_step)
+            yield {"event": "final", "data": fail_step}
+            yield {
+                "event": "done",
+                "data": {
+                    "reply": fail_step["content"],
+                    "steps": steps,
+                    "budget": {"used": budget_used, "max": budget_max, "unit": "steps"},
+                    "ok": False,
+                },
+            }
+            return
+        except Exception:
+            # Unexpected — re-raise so main.py can emit a generic error event.
+            raise
 
         if decision["type"] == "final":
             step = {
@@ -88,13 +149,15 @@ async def stream_agent(
         steps.append(call_step)
         yield {"event": "tool_call", "data": call_step}
 
-        result = run_tool(name, args)
+        result = await run_tool_async(name, args)
         result_step = {
             "index": budget_used,
             "kind": "tool_result",
             "name": name,
             "result": result,
         }
+        if not result.get("ok", True) and result.get("timeout_s") is not None:
+            result_step["note"] = "tool_timeout"
         steps.append(result_step)
         yield {"event": "tool_result", "data": result_step}
 

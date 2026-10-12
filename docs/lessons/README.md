@@ -10,6 +10,7 @@
 |------|------|-----------------|
 | [01](./01-sse-agent-steps.md) | SSE 流式步骤 —— 让 Agent「边跑边看得见」 | `bf19735` · `POST /api/chat` SSE + 右栏 LIVE |
 | [02](./02-add-agent-tool.md) | 给 Agent 加新工具 —— `list_open_hazards` | `8e21d20` · Week1 Day3 · schema + dispatch |
+| [03](./03-timeout-retry.md) | 超时与重试 —— 让 Agent 调用更可靠 | Week1 Day4 · LLM/工具超时 + 退避重试 + SSE note/error |
 
 ## 建议学习顺序
 

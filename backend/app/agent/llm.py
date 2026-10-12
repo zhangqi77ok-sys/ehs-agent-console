@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any
@@ -13,6 +14,14 @@ from ..config import settings
 
 class LLMConfigError(RuntimeError):
     """Raised when the real LLM is selected but credentials are missing."""
+
+
+class LLMCallError(RuntimeError):
+    """Raised when the LLM HTTP call fails after retries (timeout / 5xx / 429)."""
+
+
+# Status codes worth retrying (rate-limit + gateway / server errors).
+_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
 def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict]) -> dict[str, Any]:
@@ -132,14 +141,43 @@ def _require_openai_config() -> None:
 
 
 async def complete(
-    user_message: str, history: list[dict], tool_results: list[dict], tools_schema: list[dict]
+    user_message: str,
+    history: list[dict],
+    tool_results: list[dict],
+    tools_schema: list[dict],
+    on_retry: Any | None = None,
 ) -> dict[str, Any]:
+    """Decide next action. Optional on_retry(attempt, max_attempts, reason) for SSE notes."""
     provider = (settings.llm_provider or "openai").strip().lower()
     if provider == "mock":
         return _mock_decide(user_message, history, tool_results)
     # Default path: real OpenAI-compatible API
     _require_openai_config()
-    return await _openai_decide(user_message, history, tool_results, tools_schema)
+    return await _openai_decide(user_message, history, tool_results, tools_schema, on_retry=on_retry)
+
+
+def _backoff_seconds(attempt: int) -> float:
+    """Exponential backoff: base * 2^attempt, capped."""
+    base = max(0.1, float(settings.llm_retry_backoff_s))
+    return min(base * (2**attempt), 20.0)
+
+
+async def _post_chat_completions(payload: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+    """Single HTTP attempt with configured timeout. Raises for retryable / hard failures."""
+    timeout = httpx.Timeout(settings.llm_timeout_s)
+    async with httpx.AsyncClient(
+        base_url=settings.openai_base_url.rstrip("/"),
+        timeout=timeout,
+    ) as client:
+        resp = await client.post("/chat/completions", json=payload, headers=headers)
+        if resp.status_code in _RETRYABLE_STATUS:
+            raise httpx.HTTPStatusError(
+                f"retryable HTTP {resp.status_code}",
+                request=resp.request,
+                response=resp,
+            )
+        resp.raise_for_status()
+        return resp.json()
 
 
 async def _openai_decide(
@@ -147,8 +185,9 @@ async def _openai_decide(
     history: list[dict],
     tool_results: list[dict],
     tools_schema: list[dict],
+    on_retry: Any | None = None,
 ) -> dict[str, Any]:
-    """Minimal OpenAI-compatible tool-calling loop step."""
+    """Minimal OpenAI-compatible tool-calling loop step, with timeout + retries."""
     messages: list[dict[str, Any]] = [
         {
             "role": "system",
@@ -211,10 +250,48 @@ async def _openai_decide(
         "Authorization": f"Bearer {settings.openai_api_key}",
         "Content-Type": "application/json",
     }
-    async with httpx.AsyncClient(base_url=settings.openai_base_url.rstrip("/"), timeout=90.0) as client:
-        resp = await client.post("/chat/completions", json=payload, headers=headers)
-        resp.raise_for_status()
-        data = resp.json()
+
+    max_retries = max(0, int(settings.llm_max_retries))
+    max_attempts = 1 + max_retries
+    last_reason = "unknown"
+
+    for attempt in range(max_attempts):
+        try:
+            data = await _post_chat_completions(payload, headers)
+            break
+        except httpx.TimeoutException as exc:
+            last_reason = f"timeout after {settings.llm_timeout_s}s"
+            if attempt >= max_attempts - 1:
+                raise LLMCallError(
+                    f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}"
+                ) from exc
+            if on_retry:
+                await on_retry(attempt + 1, max_attempts, last_reason)
+            await asyncio.sleep(_backoff_seconds(attempt))
+        except httpx.HTTPStatusError as exc:
+            code = exc.response.status_code if exc.response is not None else 0
+            last_reason = f"HTTP {code}"
+            # 4xx (except 429) are caller/config errors — do not retry.
+            if code not in _RETRYABLE_STATUS:
+                raise LLMCallError(f"LLM 调用失败：{last_reason}") from exc
+            if attempt >= max_attempts - 1:
+                raise LLMCallError(
+                    f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}"
+                ) from exc
+            if on_retry:
+                await on_retry(attempt + 1, max_attempts, last_reason)
+            await asyncio.sleep(_backoff_seconds(attempt))
+        except httpx.TransportError as exc:
+            last_reason = f"transport: {exc.__class__.__name__}"
+            if attempt >= max_attempts - 1:
+                raise LLMCallError(
+                    f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}"
+                ) from exc
+            if on_retry:
+                await on_retry(attempt + 1, max_attempts, last_reason)
+            await asyncio.sleep(_backoff_seconds(attempt))
+    else:
+        raise LLMCallError(f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}")
 
     choice = data["choices"][0]["message"]
     tool_calls = choice.get("tool_calls") or []

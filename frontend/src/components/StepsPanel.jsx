@@ -25,6 +25,10 @@ export default function StepsPanel({ steps, budget, streaming }) {
               {s.kind === "tool_call" && JSON.stringify(s.arguments ?? {}, null, 2)}
               {s.kind === "tool_result" && JSON.stringify(s.result ?? {}, null, 2)}
               {s.kind === "final" && (s.content || "")}
+              {s.kind === "note" &&
+                (s.note === "llm_retry"
+                  ? `LLM 重试 ${s.attempt}/${s.max_attempts}：${s.reason || ""}`
+                  : JSON.stringify(s, null, 2))}
               {s.kind === "step_start" && "决策中…"}
             </pre>
           </div>

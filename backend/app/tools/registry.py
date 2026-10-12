@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Callable
 
+from ..config import settings
 from .hazard_ledger import create_corrective_ticket, list_open_hazards, query_hazard_ledger
 from .rag_stub import search_regulations
 
@@ -76,3 +78,19 @@ def run_tool(name: str, arguments: dict[str, Any] | None = None) -> dict[str, An
         return {"ok": False, "error": f"参数错误: {e}"}
     except Exception as e:  # noqa: BLE001
         return {"ok": False, "error": str(e)}
+
+
+async def run_tool_async(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Run a sync tool in a worker thread, bounded by TOOL_TIMEOUT_S."""
+    timeout = float(settings.tool_timeout_s)
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(run_tool, name, arguments),
+            timeout=timeout,
+        )
+    except asyncio.TimeoutError:
+        return {
+            "ok": False,
+            "error": f"工具执行超时（>{timeout:g}s）: {name}",
+            "timeout_s": timeout,
+        }
