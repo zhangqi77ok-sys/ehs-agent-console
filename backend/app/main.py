@@ -5,11 +5,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from .agent.llm import LLMConfigError
 from .agent.loop import run_agent, stream_agent
 from .config import settings
 from .tools.hazard_ledger import list_tickets, query_hazard_ledger
@@ -53,14 +54,20 @@ def api_tickets() -> dict:
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def api_chat(body: ChatRequest) -> ChatResponse:
-    result = await run_agent(body.message, body.history)
+    try:
+        result = await run_agent(body.message, body.history)
+    except LLMConfigError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     return ChatResponse(**result)
 
 
 @app.post("/api/chat/stream")
 async def api_chat_stream(body: ChatRequest) -> StreamingResponse:
     async def event_gen():
-        async for evt in stream_agent(body.message, body.history):
-            yield f"event: {evt['event']}\ndata: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
+        try:
+            async for evt in stream_agent(body.message, body.history):
+                yield f"event: {evt['event']}\ndata: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
+        except LLMConfigError as exc:
+            yield f"event: error\ndata: {json.dumps({'detail': str(exc)}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(event_gen(), media_type="text/event-stream")

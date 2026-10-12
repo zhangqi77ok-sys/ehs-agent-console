@@ -1,4 +1,4 @@
-"""LLM backends: mock (default) and OpenAI-compatible."""
+"""LLM backends: OpenAI-compatible (default) and optional mock for offline demos."""
 
 from __future__ import annotations
 
@@ -11,8 +11,12 @@ import httpx
 from ..config import settings
 
 
+class LLMConfigError(RuntimeError):
+    """Raised when the real LLM is selected but credentials are missing."""
+
+
 def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict]) -> dict[str, Any]:
-    """Deterministic policy so the demo works without API keys."""
+    """Deterministic policy for offline demos (LLM_PROVIDER=mock only)."""
     msg = user_message.lower()
 
     # If we already have tool results, produce a final answer.
@@ -99,10 +103,31 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
     }
 
 
-async def complete(user_message: str, history: list[dict], tool_results: list[dict], tools_schema: list[dict]) -> dict[str, Any]:
-    if settings.llm_provider == "openai" and settings.openai_api_key:
-        return await _openai_decide(user_message, history, tool_results, tools_schema)
-    return _mock_decide(user_message, history, tool_results)
+def _require_openai_config() -> None:
+    missing: list[str] = []
+    if not (settings.openai_api_key or "").strip():
+        missing.append("OPENAI_API_KEY")
+    base = (settings.openai_base_url or "").strip()
+    if not base or "HOST" in base:
+        missing.append("OPENAI_BASE_URL")
+    if missing:
+        raise LLMConfigError(
+            "Real LLM is the default. Set "
+            + ", ".join(missing)
+            + " in backend/.env (see .env.example), "
+            "or set LLM_PROVIDER=mock only for offline demos."
+        )
+
+
+async def complete(
+    user_message: str, history: list[dict], tool_results: list[dict], tools_schema: list[dict]
+) -> dict[str, Any]:
+    provider = (settings.llm_provider or "openai").strip().lower()
+    if provider == "mock":
+        return _mock_decide(user_message, history, tool_results)
+    # Default path: real OpenAI-compatible API
+    _require_openai_config()
+    return await _openai_decide(user_message, history, tool_results, tools_schema)
 
 
 async def _openai_decide(
@@ -133,7 +158,10 @@ async def _openai_decide(
                     {
                         "id": tr.get("call_id", "call_1"),
                         "type": "function",
-                        "function": {"name": tr["name"], "arguments": json.dumps(tr.get("arguments") or {}, ensure_ascii=False)},
+                        "function": {
+                            "name": tr["name"],
+                            "arguments": json.dumps(tr.get("arguments") or {}, ensure_ascii=False),
+                        },
                     }
                 ],
             }
@@ -164,8 +192,11 @@ async def _openai_decide(
         "tools": oai_tools,
         "tool_choice": "auto",
     }
-    headers = {"Authorization": f"Bearer {settings.openai_api_key}", "Content-Type": "application/json"}
-    async with httpx.AsyncClient(base_url=settings.openai_base_url, timeout=60.0) as client:
+    headers = {
+        "Authorization": f"Bearer {settings.openai_api_key}",
+        "Content-Type": "application/json",
+    }
+    async with httpx.AsyncClient(base_url=settings.openai_base_url.rstrip("/"), timeout=90.0) as client:
         resp = await client.post("/chat/completions", json=payload, headers=headers)
         resp.raise_for_status()
         data = resp.json()
@@ -179,5 +210,10 @@ async def _openai_decide(
             args = json.loads(fn.get("arguments") or "{}")
         except json.JSONDecodeError:
             args = {}
-        return {"type": "tool_call", "name": fn["name"], "arguments": args, "call_id": tc.get("id", "call_1")}
+        return {
+            "type": "tool_call",
+            "name": fn["name"],
+            "arguments": args,
+            "call_id": tc.get("id", "call_1"),
+        }
     return {"type": "final", "content": choice.get("content") or "（模型未返回文本）"}

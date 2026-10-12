@@ -14,7 +14,7 @@ Browser (Vite/React)
   ▼
 FastAPI
   │  agent/loop.py  ← 手写循环（无 LangChain）
-  │  agent/llm.py   ← mock | openai-compatible
+  │  agent/llm.py   ← openai-compatible (default) | mock (opt-in)
   ▼
 tools/
   query_hazard_ledger
@@ -25,7 +25,7 @@ tools/
 ## Agent 循环（v0）
 
 1. 接收用户消息与可选历史。
-2. 调用 LLM（默认 mock 规则引擎）得到 `tool_call` 或 `final`。
+2. 调用 LLM（默认真实 OpenAI 兼容接口；`LLM_PROVIDER=mock` 才走规则引擎）得到 `tool_call` 或 `final`。
 3. 若 `tool_call`：执行注册表中的工具，把结果追加进上下文，步数 +1。
 4. 重复直到 `final` 或达到 `MAX_AGENT_STEPS`。
 5. 把每一步（tool_call / tool_result / final）和预算一并返回前端。
