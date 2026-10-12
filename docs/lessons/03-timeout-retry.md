@@ -1,6 +1,6 @@
 # 第 03 课：超时与重试 —— 让 Agent 调用更可靠
 
-对应提交：见下方「跟练步骤」里的 `git log`（推送后会回填 SHA）  
+对应提交：[`643607c`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/643607c)  
 相关 Issue：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day4
 
 ---
