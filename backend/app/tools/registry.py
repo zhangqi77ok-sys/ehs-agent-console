@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from .hazard_ledger import create_corrective_ticket, query_hazard_ledger
+from .hazard_ledger import create_corrective_ticket, list_open_hazards, query_hazard_ledger
 from .rag_stub import search_regulations
 
 ToolFn = Callable[..., dict]
@@ -12,6 +12,7 @@ ToolFn = Callable[..., dict]
 
 TOOLS: dict[str, ToolFn] = {
     "query_hazard_ledger": query_hazard_ledger,
+    "list_open_hazards": list_open_hazards,
     "create_corrective_ticket": create_corrective_ticket,
     "search_regulations": search_regulations,
 }
@@ -27,6 +28,14 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "status": {"type": "string", "description": "状态过滤"},
                 "level": {"type": "string", "description": "级别过滤"},
             },
+        },
+    },
+    {
+        "name": "list_open_hazards",
+        "description": "列出所有未闭环的隐患（状态为「待整改」或「整改中」）。无需参数，适合回答「有哪些待整改/未闭环的隐患」。",
+        "parameters": {
+            "type": "object",
+            "properties": {},
         },
     },
     {

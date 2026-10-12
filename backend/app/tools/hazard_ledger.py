@@ -86,5 +86,18 @@ def create_corrective_ticket(
     return {"ok": True, "ticket": deepcopy(ticket)}
 
 
+def list_open_hazards() -> dict[str, Any]:
+    """List all hazards that are still open (待整改 or 整改中)."""
+    open_statuses = {"待整改", "整改中"}
+    items = [deepcopy(h) for h in _HAZARDS if h["status"] in open_statuses]
+    # 待整改 first, then 整改中; within same status keep original order
+    items.sort(key=lambda h: (0 if h["status"] == "待整改" else 1, h["id"]))
+    return {
+        "count": len(items),
+        "open_statuses": sorted(open_statuses),
+        "items": items,
+    }
+
+
 def list_tickets() -> list[dict[str, Any]]:
     return deepcopy(_TICKETS)

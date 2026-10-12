@@ -36,6 +36,15 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
                 "type": "final",
                 "content": "查询到以下隐患：\n" + "\n".join(lines) + "\n\n如需开整改单，告诉我隐患编号和整改措施即可。",
             }
+        if name == "list_open_hazards":
+            items = (result.get("result") or {}).get("items") or []
+            if not items:
+                return {"type": "final", "content": "当前没有未闭环（待整改/整改中）的隐患。"}
+            lines = [f"- {i['id']}｜{i['title']}｜{i['level']}｜{i['status']}｜责任人 {i['owner']}" for i in items]
+            return {
+                "type": "final",
+                "content": f"未闭环隐患共 {len(items)} 条：\n" + "\n".join(lines),
+            }
         if name == "create_corrective_ticket":
             inner = result.get("result") or result
             if inner.get("ok"):
@@ -57,6 +66,9 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
         return {"type": "final", "content": f"工具 {name} 已执行，结果：{json.dumps(result, ensure_ascii=False)[:800]}"}
 
     # First turn: pick a tool from keywords.
+    if any(k in user_message for k in ("有哪些待整改", "待整改的隐患", "未闭环", "开放隐患", "未关闭隐患")):
+        return {"type": "tool_call", "name": "list_open_hazards", "arguments": {}}
+
     if any(k in msg for k in ("法规", "闭环要求", "作业票", "分级", "期限")):
         return {
             "type": "tool_call",
@@ -141,7 +153,10 @@ async def _openai_decide(
         {
             "role": "system",
             "content": (
-                "你是 EHS 隐患闭环助手。需要查台账、开整改单或查法规时，调用提供的工具；"
+                "你是 EHS 隐患闭环助手。可用工具：query_hazard_ledger（按条件查台账）、"
+                "list_open_hazards（列出所有待整改/整改中的未闭环隐患，无参数）、"
+                "create_corrective_ticket（开整改单）、search_regulations（查法规摘要）。"
+                "用户问「有哪些待整改/未闭环隐患」时优先用 list_open_hazards；"
                 "拿到工具结果后再用中文给出简洁最终回答。一次只调用一个工具。"
             ),
         }
