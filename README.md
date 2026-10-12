@@ -17,7 +17,7 @@
 | 查隐患台账 | `query_hazard_ledger`（内存示例数据） |
 | 开整改单 | `create_corrective_ticket` |
 | 法规摘要 | `search_regulations`（对样例 markdown 做关键词 stub） |
-| 可视化 | 左侧对话，右侧步骤 / 工具参数与结果 / 步数预算 |
+| 可视化（SSE） | 左侧对话，右侧**实时**刷步骤 / 工具 / 预算（`POST /api/chat`） |
 
 试试这些问题：
 
@@ -80,6 +80,14 @@ cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 
 # 终端 B
 cd frontend && npm run dev
 ```
+
+## 流式步骤（SSE）
+
+前端默认走 `POST /api/chat`（`text/event-stream`）。事件顺序大致为：
+
+`budget` → `step_start` → `tool_call` → `tool_result` → … → `final` → `done`
+
+右栏在收到 `tool_call` / `tool_result` / `final` 时立刻追加，不必等整轮结束。脚本或 curl 可用非流式：`POST /api/chat/complete`。
 
 ## 面试可以怎么讲
 

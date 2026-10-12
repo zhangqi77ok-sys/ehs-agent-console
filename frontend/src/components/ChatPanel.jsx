@@ -7,7 +7,7 @@ const HINTS = [
   "隐患闭环的法规要求是什么？",
 ];
 
-export default function ChatPanel({ messages, loading, onSend }) {
+export default function ChatPanel({ messages, loading, streamingHint, onSend }) {
   const [text, setText] = useState("");
 
   function submit(e) {
@@ -23,13 +23,18 @@ export default function ChatPanel({ messages, loading, onSend }) {
       <div className="panel-title">对话</div>
       <div className="chat-log">
         {messages.length === 0 && (
-          <div className="empty">问一句隐患相关的问题，右侧会显示 Agent 步骤与工具调用。</div>
+          <div className="empty">
+            问一句隐患相关的问题，右侧会<strong>实时</strong>显示 Agent 步骤与工具调用。
+          </div>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`bubble ${m.role}${m.error ? " error" : ""}`}>
             {m.content}
           </div>
         ))}
+        {loading && streamingHint && (
+          <div className="bubble assistant streaming">{streamingHint}</div>
+        )}
       </div>
       <div className="hints">
         {HINTS.map((h) => (
@@ -46,7 +51,7 @@ export default function ChatPanel({ messages, loading, onSend }) {
           disabled={loading}
         />
         <button type="submit" disabled={loading || !text.trim()}>
-          {loading ? "思考中…" : "发送"}
+          {loading ? "流式中…" : "发送"}
         </button>
       </form>
     </div>

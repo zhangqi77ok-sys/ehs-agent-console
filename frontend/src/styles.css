@@ -181,3 +181,34 @@ body { background: var(--bg); color: var(--text); }
   background: linear-gradient(90deg, var(--accent-dim), var(--accent));
 }
 .empty { color: var(--muted); font-size: 13px; padding: 24px 8px; text-align: center; }
+
+.bubble.streaming {
+  opacity: 0.75;
+  font-style: italic;
+  border-style: dashed;
+}
+.live-badge {
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0a0;
+  background: rgba(62, 207, 142, 0.15);
+  border: 1px solid var(--ok);
+  border-radius: 4px;
+  padding: 1px 6px;
+  vertical-align: middle;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.step-new {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(61, 156, 240, 0.25);
+}
+.panel-title {
+  display: flex;
+  align-items: center;
+}

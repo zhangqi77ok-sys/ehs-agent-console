@@ -10,10 +10,11 @@
 
 ```
 Browser (Vite/React)
-  │  POST /api/chat
+  │  POST /api/chat  →  text/event-stream (SSE)
+  │  events: step_start | tool_call | tool_result | final | budget | done
   ▼
 FastAPI
-  │  agent/loop.py  ← 手写循环（无 LangChain）
+  │  agent/loop.py  ← 手写循环（无 LangChain），边跑边 yield
   │  agent/llm.py   ← openai-compatible (default) | mock (opt-in)
   ▼
 tools/
@@ -22,24 +23,26 @@ tools/
   search_regulations   ← v0 关键词 stub，非向量库
 ```
 
+非流式 JSON 仍可用：`POST /api/chat/complete`（脚本 / smoke test）。
+
 ## Agent 循环（v0）
 
 1. 接收用户消息与可选历史。
 2. 调用 LLM（默认真实 OpenAI 兼容接口；`LLM_PROVIDER=mock` 才走规则引擎）得到 `tool_call` 或 `final`。
-3. 若 `tool_call`：执行注册表中的工具，把结果追加进上下文，步数 +1。
+3. 若 `tool_call`：执行注册表中的工具，把结果追加进上下文，步数 +1；**立刻通过 SSE 推给前端**。
 4. 重复直到 `final` 或达到 `MAX_AGENT_STEPS`。
-5. 把每一步（tool_call / tool_result / final）和预算一并返回前端。
+5. 右栏边跑边刷步骤；左栏在 `done` 后写入最终回答。
 
 ## 前端
 
-- **左栏**：聊天与快捷提示。
-- **右栏**：步骤时间线 + 步数预算条（后续可换成 token 预算）。
+- **左栏**：聊天与快捷提示；流式过程中显示「第 N 步决策中 / 调用工具…」。
+- **右栏**：步骤时间线（LIVE 徽章）+ 步数预算条（后续可换成 token 预算）。
 
 ## 后续迭代（学习节奏）
 
 | 周次 | 内容 |
 |------|------|
-| Week1 | 跑通问答 → 工具 → 可视化（本仓库 MVP） |
+| Week1 | 跑通问答 → 工具 → **SSE 可视化**（本仓库 MVP） |
 | Week2 | 真向量 RAG、重试/超时、简单评测集 |
 | Week3 | 登录权限、一键演示、部署与 README 面试讲法打磨 |
 
