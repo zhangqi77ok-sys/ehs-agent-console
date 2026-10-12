@@ -1,5 +1,6 @@
 # 第 07 课：面试复盘 —— 把本仓库讲成 Offer 故事
 
+对应提交：[`de11d1f`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/de11d1f)  
 对应文档：[docs/interview.md](../interview.md)（主文，请精读）  
 相关 Issue：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day7  
 前置：Day1–6 课记（SSE → 工具 → 超时 → 强制超时 → 评测 → 打磨）
