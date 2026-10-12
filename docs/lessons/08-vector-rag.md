@@ -1,6 +1,6 @@
 # 第 08 课：本地向量 RAG —— 把关键词 stub 换成「切块 → 嵌入 → 检索」
 
-对应提交：见本课合并进 `main` 后的 commit（Week2 Day1）  
+对应提交：[`6b0ae89`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/6b0ae89)  
 相关 Issue：[#1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Week2  
 前置：[02 · 加工具](./02-add-agent-tool.md) · [05 · 评测门禁](./05-eval-set.md)
 

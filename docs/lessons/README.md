@@ -15,7 +15,7 @@
 | [05](./05-eval-set.md) | 评测集 —— 给 Agent 加一道「门禁」 | `641a1b3` · Week1 Day5 · `eval/cases.json` + `scripts/run_eval.py` |
 | [06](./06-polish.md) | 控制台打磨 —— Demo / 面试更好讲 | `59e420f` · Week1 Day6 · 顶栏状态 / 预算熔断 / 错误文案 / 评测露出 |
 | [07](./07-interview.md) | 面试复盘 —— 把本仓库讲成 Offer 故事 | `de11d1f` · Week1 Day7 · 见 [interview.md](../interview.md) |
-| [08](./08-vector-rag.md) | 本地向量 RAG —— 切块 / 嵌入 / FAISS | Week2 Day1 · `search_regulations` 真检索 |
+| [08](./08-vector-rag.md) | 本地向量 RAG —— 切块 / 嵌入 / FAISS | `6b0ae89` · Week2 Day1 · `search_regulations` 真检索 |
 
 ## 建议学习顺序
 
