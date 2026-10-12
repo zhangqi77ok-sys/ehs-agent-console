@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatPanel from "./components/ChatPanel.jsx";
 import StepsPanel from "./components/StepsPanel.jsx";
 import { chatStream } from "./api/chat.js";
+
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export default function App() {
   const [messages, setMessages] = useState([]);
@@ -9,8 +11,23 @@ export default function App() {
   const [budget, setBudget] = useState({ used: 0, max: 8, unit: "steps" });
   const [loading, setLoading] = useState(false);
   const [streamingHint, setStreamingHint] = useState("");
+  const [reliabilityInfo, setReliabilityInfo] = useState(null);
 
-  async function onSend(text) {
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE}/health`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setReliabilityInfo(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function onSend(text, opts = {}) {
+    const forceTimeout = !!opts.forceTimeout;
     const history = messages
       .filter((m) => !m.error)
       .map((m) => ({
@@ -22,35 +39,51 @@ export default function App() {
     setLoading(true);
     setSteps([]);
     setBudget({ used: 0, max: 8, unit: "steps" });
-    setStreamingHint("连接中…");
+    setStreamingHint(forceTimeout ? "强制超时练习 · 连接中…" : "连接中…");
 
     try {
-      const data = await chatStream(text, history, (eventName, payload) => {
-        if (eventName === "step_start") {
-          setStreamingHint(`第 ${payload.index} 步决策中…`);
-        } else if (eventName === "tool_call") {
-          setStreamingHint(`调用工具 ${payload.name}…`);
-          setSteps((prev) => [...prev, payload]);
-        } else if (eventName === "tool_result") {
-          setStreamingHint(`工具 ${payload.name} 返回`);
-          setSteps((prev) => [...prev, payload]);
-        } else if (eventName === "final") {
-          setStreamingHint("生成最终回答…");
-          setSteps((prev) => [...prev, payload]);
-        } else if (eventName === "budget") {
-          setBudget(payload);
-        } else if (eventName === "note") {
-          if (payload.note === "llm_retry") {
-            setStreamingHint(
-              `LLM 重试 ${payload.attempt}/${payload.max_attempts}：${payload.reason || ""}`
-            );
+      const data = await chatStream(
+        text,
+        history,
+        (eventName, payload) => {
+          if (eventName === "step_start") {
+            setStreamingHint(`第 ${payload.index} 步决策中…`);
+          } else if (eventName === "tool_call") {
+            setStreamingHint(`调用工具 ${payload.name}…`);
+            setSteps((prev) => [...prev, payload]);
+          } else if (eventName === "tool_result") {
+            setStreamingHint(`工具 ${payload.name} 返回`);
+            setSteps((prev) => [...prev, payload]);
+          } else if (eventName === "final") {
+            setStreamingHint("生成最终回答…");
+            setSteps((prev) => [...prev, payload]);
+          } else if (eventName === "budget") {
+            setBudget(payload);
+          } else if (eventName === "note") {
+            if (payload.note === "llm_retry") {
+              setStreamingHint(
+                `LLM 重试 ${payload.attempt}/${payload.max_attempts}：${payload.reason || ""}`
+              );
+            } else if (payload.note === "force_timeout_drill") {
+              setStreamingHint(payload.detail || "强制超时练习已启用");
+            }
+            setSteps((prev) => [...prev, payload]);
+          } else if (eventName === "error") {
+            setStreamingHint(`错误：${payload.detail || "未知错误"}`);
           }
-          setSteps((prev) => [...prev, payload]);
-        }
-      });
+        },
+        { force_timeout: forceTimeout }
+      );
 
       setBudget(data.budget || { used: 0, max: 8, unit: "steps" });
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.reply,
+          error: data.ok === false,
+        },
+      ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -74,6 +107,7 @@ export default function App() {
           loading={loading}
           streamingHint={streamingHint}
           onSend={onSend}
+          reliabilityInfo={reliabilityInfo}
         />
         <StepsPanel steps={steps} budget={budget} streaming={loading} />
       </div>

@@ -80,7 +80,7 @@ python -c "import asyncio; from app.agent.loop import run_agent; \
 r=asyncio.run(run_agent('有哪些待整改的隐患')); print(r['reply'][:200]); print('steps', len(r['steps']))"
 ```
 
-5. （可选）把 `LLM_TIMEOUT_S=0.001` 临时改极小，再问一次：应看到 `error` / 「调用失败：…timeout…」，右栏可能有 `note · llm_retry`。**测完立刻改回 60。**
+5. （推荐）用前端勾选 **「练习：强制超时」** 触发同一路径，详见 [04 · 前端强制超时练习](./04-frontend-timeout-drill.md)。也可把 `LLM_TIMEOUT_S=0.001` 临时改极小；**测完立刻改回 60。**
 
 6. 打开 http://127.0.0.1:5173 ，正常提问，确认 happy path 仍通。
 

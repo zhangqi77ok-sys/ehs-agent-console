@@ -7,16 +7,37 @@ const HINTS = [
   "隐患闭环的法规要求是什么？",
 ];
 
-export default function ChatPanel({ messages, loading, streamingHint, onSend }) {
+export default function ChatPanel({
+  messages,
+  loading,
+  streamingHint,
+  onSend,
+  reliabilityInfo,
+}) {
   const [text, setText] = useState("");
+  const [forceTimeout, setForceTimeout] = useState(false);
 
   function submit(e) {
     e?.preventDefault();
     const v = text.trim();
     if (!v || loading) return;
-    onSend(v);
+    onSend(v, { forceTimeout });
     setText("");
   }
+
+  function sendHint(h) {
+    if (loading) return;
+    onSend(h, { forceTimeout });
+  }
+
+  const timeoutLabel =
+    reliabilityInfo?.llm_timeout_s != null
+      ? `${reliabilityInfo.llm_timeout_s}s`
+      : "（见 .env LLM_TIMEOUT_S）";
+  const retriesLabel =
+    reliabilityInfo?.llm_max_retries != null
+      ? String(reliabilityInfo.llm_max_retries)
+      : "（见 .env）";
 
   return (
     <div className="panel">
@@ -38,10 +59,26 @@ export default function ChatPanel({ messages, loading, streamingHint, onSend }) 
       </div>
       <div className="hints">
         {HINTS.map((h) => (
-          <button key={h} type="button" disabled={loading} onClick={() => onSend(h)}>
+          <button key={h} type="button" disabled={loading} onClick={() => sendHint(h)}>
             {h}
           </button>
         ))}
+      </div>
+      <div className={`drill-bar${forceTimeout ? " active" : ""}`}>
+        <label className="drill-toggle">
+          <input
+            type="checkbox"
+            checked={forceTimeout}
+            disabled={loading}
+            onChange={(e) => setForceTimeout(e.target.checked)}
+          />
+          <span>练习：强制超时</span>
+        </label>
+        <span className="drill-hint">
+          {forceTimeout
+            ? "本轮用 ~0.05s 超时打真实 LLM，右栏应出现 llm_retry / 最终失败"
+            : `正常超时 ${timeoutLabel} · 重试 ${retriesLabel} 次`}
+        </span>
       </div>
       <form className="composer" onSubmit={submit}>
         <input

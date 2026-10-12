@@ -12,12 +12,16 @@ from . import llm
 from .llm import LLMCallError, LLMConfigError
 
 
-async def run_agent(message: str, history: list[dict] | None = None) -> dict[str, Any]:
+async def run_agent(
+    message: str,
+    history: list[dict] | None = None,
+    force_timeout: bool = False,
+) -> dict[str, Any]:
     """Run to completion; returns final payload with steps for the UI."""
     steps: list[dict[str, Any]] = []
     reply = ""
     budget: dict[str, Any] = {"used": 0, "max": settings.max_agent_steps, "unit": "steps"}
-    async for evt in stream_agent(message, history):
+    async for evt in stream_agent(message, history, force_timeout=force_timeout):
         name = evt["event"]
         data = evt["data"]
         if name in ("tool_call", "tool_result", "final", "note"):
@@ -36,9 +40,14 @@ async def run_agent(message: str, history: list[dict] | None = None) -> dict[str
 
 
 async def stream_agent(
-    message: str, history: list[dict] | None = None
+    message: str,
+    history: list[dict] | None = None,
+    force_timeout: bool = False,
 ) -> AsyncIterator[dict[str, Any]]:
-    """Yield SSE events live as the agent runs (not after the full run)."""
+    """Yield SSE events live as the agent runs (not after the full run).
+
+    force_timeout: per-request teaching drill — tiny LLM HTTP timeout for this turn only.
+    """
     steps: list[dict[str, Any]] = []
     tool_results: list[dict[str, Any]] = []
     hist = list(history or [])
@@ -49,6 +58,16 @@ async def stream_agent(
         "event": "budget",
         "data": {"used": 0, "max": budget_max, "unit": "steps"},
     }
+
+    if force_timeout:
+        drill = {
+            "index": 0,
+            "kind": "note",
+            "note": "force_timeout_drill",
+            "detail": "本轮启用强制超时练习：LLM HTTP 超时约 0.05s，仍走真实网关路径。",
+        }
+        steps.append(drill)
+        yield {"event": "note", "data": drill}
 
     for i in range(budget_max):
         budget_used = i + 1
@@ -76,7 +95,14 @@ async def stream_agent(
             )
 
         decision_task = asyncio.create_task(
-            llm.complete(message, hist, tool_results, TOOL_SCHEMAS, on_retry=on_retry)
+            llm.complete(
+                message,
+                hist,
+                tool_results,
+                TOOL_SCHEMAS,
+                on_retry=on_retry,
+                force_timeout=force_timeout,
+            )
         )
 
         # Drain retry notes while the LLM call (and its backoff sleeps) is in flight.

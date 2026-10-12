@@ -140,31 +140,56 @@ def _require_openai_config() -> None:
         )
 
 
+# Drill-only: tiny timeout so a real LLM HTTP call always hits TimeoutException.
+_FORCE_TIMEOUT_S = 0.05
+
+
 async def complete(
     user_message: str,
     history: list[dict],
     tool_results: list[dict],
     tools_schema: list[dict],
     on_retry: Any | None = None,
+    force_timeout: bool = False,
 ) -> dict[str, Any]:
-    """Decide next action. Optional on_retry(attempt, max_attempts, reason) for SSE notes."""
+    """Decide next action. Optional on_retry(attempt, max_attempts, reason) for SSE notes.
+
+    force_timeout: teaching drill — use an extremely short HTTP timeout for this call only
+    (still hits the real OpenAI-compatible path; does not switch to mock).
+    """
     provider = (settings.llm_provider or "openai").strip().lower()
+    if force_timeout and provider == "mock":
+        raise LLMCallError(
+            "强制超时练习需要真实 LLM。请在 backend/.env 设 LLM_PROVIDER=openai 并配置密钥。"
+        )
     if provider == "mock":
         return _mock_decide(user_message, history, tool_results)
     # Default path: real OpenAI-compatible API
     _require_openai_config()
-    return await _openai_decide(user_message, history, tool_results, tools_schema, on_retry=on_retry)
+    return await _openai_decide(
+        user_message,
+        history,
+        tool_results,
+        tools_schema,
+        on_retry=on_retry,
+        force_timeout=force_timeout,
+    )
 
 
-def _backoff_seconds(attempt: int) -> float:
+def _backoff_seconds(attempt: int, base: float | None = None) -> float:
     """Exponential backoff: base * 2^attempt, capped."""
-    base = max(0.1, float(settings.llm_retry_backoff_s))
-    return min(base * (2**attempt), 20.0)
+    b = max(0.05, float(settings.llm_retry_backoff_s if base is None else base))
+    return min(b * (2**attempt), 20.0)
 
 
-async def _post_chat_completions(payload: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
-    """Single HTTP attempt with configured timeout. Raises for retryable / hard failures."""
-    timeout = httpx.Timeout(settings.llm_timeout_s)
+async def _post_chat_completions(
+    payload: dict[str, Any],
+    headers: dict[str, str],
+    timeout_s: float | None = None,
+) -> dict[str, Any]:
+    """Single HTTP attempt with configured (or overridden) timeout. Raises for retryable / hard failures."""
+    effective = settings.llm_timeout_s if timeout_s is None else timeout_s
+    timeout = httpx.Timeout(effective)
     async with httpx.AsyncClient(
         base_url=settings.openai_base_url.rstrip("/"),
         timeout=timeout,
@@ -186,6 +211,7 @@ async def _openai_decide(
     tool_results: list[dict],
     tools_schema: list[dict],
     on_retry: Any | None = None,
+    force_timeout: bool = False,
 ) -> dict[str, Any]:
     """Minimal OpenAI-compatible tool-calling loop step, with timeout + retries."""
     messages: list[dict[str, Any]] = [
@@ -254,20 +280,26 @@ async def _openai_decide(
     max_retries = max(0, int(settings.llm_max_retries))
     max_attempts = 1 + max_retries
     last_reason = "unknown"
+    # Per-request override for the frontend 「练习：强制超时」 drill.
+    effective_timeout = _FORCE_TIMEOUT_S if force_timeout else float(settings.llm_timeout_s)
+    # Faster backoff when drilling so the right panel shows retries without a long wait.
+    backoff_base = 0.2 if force_timeout else None
 
     for attempt in range(max_attempts):
         try:
-            data = await _post_chat_completions(payload, headers)
+            data = await _post_chat_completions(payload, headers, timeout_s=effective_timeout)
             break
         except httpx.TimeoutException as exc:
-            last_reason = f"timeout after {settings.llm_timeout_s}s"
+            last_reason = f"timeout after {effective_timeout}s"
+            if force_timeout:
+                last_reason += "（练习：强制超时）"
             if attempt >= max_attempts - 1:
                 raise LLMCallError(
                     f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}"
                 ) from exc
             if on_retry:
                 await on_retry(attempt + 1, max_attempts, last_reason)
-            await asyncio.sleep(_backoff_seconds(attempt))
+            await asyncio.sleep(_backoff_seconds(attempt, base=backoff_base))
         except httpx.HTTPStatusError as exc:
             code = exc.response.status_code if exc.response is not None else 0
             last_reason = f"HTTP {code}"
@@ -280,7 +312,7 @@ async def _openai_decide(
                 ) from exc
             if on_retry:
                 await on_retry(attempt + 1, max_attempts, last_reason)
-            await asyncio.sleep(_backoff_seconds(attempt))
+            await asyncio.sleep(_backoff_seconds(attempt, base=backoff_base))
         except httpx.TransportError as exc:
             last_reason = f"transport: {exc.__class__.__name__}"
             if attempt >= max_attempts - 1:
@@ -289,7 +321,7 @@ async def _openai_decide(
                 ) from exc
             if on_retry:
                 await on_retry(attempt + 1, max_attempts, last_reason)
-            await asyncio.sleep(_backoff_seconds(attempt))
+            await asyncio.sleep(_backoff_seconds(attempt, base=backoff_base))
     else:
         raise LLMCallError(f"LLM 调用失败（已重试 {max_retries} 次）：{last_reason}")
 

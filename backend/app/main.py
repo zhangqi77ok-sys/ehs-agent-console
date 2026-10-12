@@ -15,7 +15,7 @@ from .agent.loop import run_agent, stream_agent
 from .config import settings
 from .tools.hazard_ledger import list_tickets, query_hazard_ledger
 
-app = FastAPI(title="EHS Agent Console", version="0.3.0")
+app = FastAPI(title="EHS Agent Console", version="0.3.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +29,8 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     history: list[dict[str, Any]] = Field(default_factory=list)
+    # Teaching drill: frontend 「练习：强制超时」 — tiny LLM timeout for this turn only.
+    force_timeout: bool = False
 
 
 class ChatResponse(BaseModel):
@@ -38,8 +40,15 @@ class ChatResponse(BaseModel):
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "llm_provider": settings.llm_provider}
+def health() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "llm_provider": settings.llm_provider,
+        "llm_timeout_s": settings.llm_timeout_s,
+        "llm_max_retries": settings.llm_max_retries,
+        "llm_retry_backoff_s": settings.llm_retry_backoff_s,
+        "tool_timeout_s": settings.tool_timeout_s,
+    }
 
 
 @app.get("/api/hazards")
@@ -61,7 +70,9 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
 
     async def event_gen():
         try:
-            async for evt in stream_agent(body.message, body.history):
+            async for evt in stream_agent(
+                body.message, body.history, force_timeout=body.force_timeout
+            ):
                 yield (
                     f"event: {evt['event']}\n"
                     f"data: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
@@ -86,7 +97,9 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
 async def api_chat_complete(body: ChatRequest) -> ChatResponse:
     """Non-stream JSON (scripts / smoke tests). Prefer /api/chat for the UI."""
     try:
-        result = await run_agent(body.message, body.history)
+        result = await run_agent(
+            body.message, body.history, force_timeout=body.force_timeout
+        )
     except (LLMConfigError, LLMCallError) as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return ChatResponse(**result)

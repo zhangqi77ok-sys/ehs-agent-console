@@ -3,16 +3,22 @@ const API_BASE = import.meta.env.VITE_API_BASE || "";
 /**
  * Stream chat via SSE from POST /api/chat.
  * onEvent(eventName, data) is called for each SSE event.
+ * options.force_timeout: teaching drill — backend uses ~0.05s LLM timeout for this turn.
  * Returns the final { reply, steps, budget } from the "done" event.
  */
-export async function chatStream(message, history = [], onEvent) {
+export async function chatStream(message, history = [], onEvent, options = {}) {
+  const body = {
+    message,
+    history,
+    force_timeout: !!options.force_timeout,
+  };
   const res = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "text/event-stream",
     },
-    body: JSON.stringify({ message, history }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -63,9 +69,8 @@ export async function chatStream(message, history = [], onEvent) {
         data = { raw: dataLines.join("\n") };
       }
 
-      if (eventName === "error") {
-        throw new Error(data.detail || data.message || "Agent 流式错误");
-      }
+      // Do not abort on "error": Day4 loop still emits final + done after LLMCallError,
+      // so the right panel keeps retry notes and the left panel gets the失败 reply.
       if (typeof onEvent === "function") {
         onEvent(eventName, data);
       }
@@ -82,6 +87,6 @@ export async function chatStream(message, history = [], onEvent) {
 }
 
 /** Alias kept for older imports; always streams. */
-export async function chat(message, history = [], onEvent) {
-  return chatStream(message, history, onEvent);
+export async function chat(message, history = [], onEvent, options = {}) {
+  return chatStream(message, history, onEvent, options);
 }

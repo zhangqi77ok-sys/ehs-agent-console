@@ -28,7 +28,9 @@ export default function StepsPanel({ steps, budget, streaming }) {
               {s.kind === "note" &&
                 (s.note === "llm_retry"
                   ? `LLM 重试 ${s.attempt}/${s.max_attempts}：${s.reason || ""}`
-                  : JSON.stringify(s, null, 2))}
+                  : s.note === "force_timeout_drill"
+                    ? s.detail || "练习：强制超时已启用"
+                    : JSON.stringify(s, null, 2))}
               {s.kind === "step_start" && "决策中…"}
             </pre>
           </div>

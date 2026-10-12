@@ -212,3 +212,41 @@ body { background: var(--bg); color: var(--text); }
   display: flex;
   align-items: center;
 }
+
+.drill-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+  color: var(--muted);
+}
+.drill-bar.active {
+  background: rgba(240, 180, 41, 0.08);
+  border-top-color: var(--warn);
+}
+.drill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  user-select: none;
+}
+.drill-toggle input {
+  accent-color: var(--warn);
+  width: 14px;
+  height: 14px;
+}
+.drill-hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+.drill-bar.active .drill-hint {
+  color: var(--warn);
+}
+.step .kind.note { color: var(--warn); }
