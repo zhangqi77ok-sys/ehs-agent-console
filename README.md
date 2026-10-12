@@ -104,6 +104,23 @@ cd frontend && npm run dev
 每次代码改动都会写一篇中文教学文档（目标、关键代码、跟练、思考题），目录见 [docs/lessons/](docs/lessons/README.md)。
 
 - [01 · SSE 流式步骤](docs/lessons/01-sse-agent-steps.md)
+- [02 · 给 Agent 加新工具](docs/lessons/02-add-agent-tool.md)
+- [03 · 超时与重试](docs/lessons/03-timeout-retry.md)
+- [04 · 前端「强制超时」练习](docs/lessons/04-frontend-timeout-drill.md)
+- [05 · 评测集（门禁）](docs/lessons/05-eval-set.md)
+
+## 评测门禁（Week1 Day5）
+
+固定 5 条业务用例，走与 UI 相同的 `run_agent`（真实 LLM），断言工具名 + 回答关键词；挂了非零退出码。
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/run_eval.py -v
+# 单条：python scripts/run_eval.py --only list_open_hazards
+```
+
+说明见 [docs/lessons/05-eval-set.md](docs/lessons/05-eval-set.md)。
 
 ## License
 
