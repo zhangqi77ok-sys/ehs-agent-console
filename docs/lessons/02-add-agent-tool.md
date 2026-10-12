@@ -1,6 +1,6 @@
 # 第 02 课：给 Agent 加一个新工具 —— `list_open_hazards`
 
-对应提交：见本课推送后的 commit SHA（`git log -1 --oneline`）  
+对应提交：[`8e21d20`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/8e21d20)  
 相关 Issue：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day3
 
 ---

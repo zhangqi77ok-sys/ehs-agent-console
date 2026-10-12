@@ -9,7 +9,7 @@
 | 编号 | 标题 | 对应提交 / 能力 |
 |------|------|-----------------|
 | [01](./01-sse-agent-steps.md) | SSE 流式步骤 —— 让 Agent「边跑边看得见」 | `bf19735` · `POST /api/chat` SSE + 右栏 LIVE |
-| [02](./02-add-agent-tool.md) | 给 Agent 加新工具 —— `list_open_hazards` | Week1 Day3 · schema + dispatch |
+| [02](./02-add-agent-tool.md) | 给 Agent 加新工具 —— `list_open_hazards` | `8e21d20` · Week1 Day3 · schema + dispatch |
 
 ## 建议学习顺序
 
