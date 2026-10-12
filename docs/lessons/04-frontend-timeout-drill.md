@@ -1,6 +1,6 @@
 # 第 04 课：前端「强制超时」练习 —— 不用改 .env 也能看见重试
 
-对应提交：见本仓库 `main` 最新 commit（本课）  
+对应提交：[`8587de5`](https://github.com/zhangqi77ok-sys/ehs-agent-console/commit/8587de5)  
 相关：[#1 Week1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) · Day4 跟练补强  
 前置：[03 · 超时与重试](./03-timeout-retry.md)
 
