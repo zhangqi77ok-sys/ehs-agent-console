@@ -32,6 +32,7 @@
 backend/          FastAPI + Agent 循环 + 工具
 frontend/         Vite + React 控制台
 docs/architecture.md
+docs/lessons/     每次改动的中文教学文档（跟练用）
 ```
 
 ## 配置（必填）
@@ -97,6 +98,12 @@ cd frontend && npm run dev
 4. **工程背景**：后端拆分、接口契约、预算熔断（最大步数）——Java/企业级经验迁到 Python Agent。
 
 更细的设计见 [docs/architecture.md](docs/architecture.md)。
+
+## 教学文档
+
+每次代码改动都会写一篇中文教学文档（目标、关键代码、跟练、思考题），目录见 [docs/lessons/](docs/lessons/README.md)。
+
+- [01 · SSE 流式步骤](docs/lessons/01-sse-agent-steps.md)
 
 ## License
 
