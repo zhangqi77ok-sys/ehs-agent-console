@@ -75,11 +75,11 @@ cp .env.example .env
 # 编辑 .env：
 # LLM_PROVIDER=openai
 # OPENAI_API_KEY=sk-...
-# OPENAI_BASE_URL=https://api.openai.com/v1   # 或兼容网关
-# OPENAI_MODEL=gpt-4o-mini
+# OPENAI_BASE_URL=https://api.openai.com/v1   # 或任意 OpenAI 兼容网关 …/v1
+# OPENAI_MODEL=gpt-4o-mini                    # 或网关模型名，如 glm-5.3-flash
 ```
 
-重启 uvicorn 即可。未配置 Key 时始终走 mock。
+`.env` 已在 `.gitignore` 中，切勿提交密钥。重启 uvicorn 即可。未配置 Key 或 `LLM_PROVIDER=mock` 时始终走 mock。
 
 ## 面试可以怎么讲
 
