@@ -27,3 +27,7 @@ dist/
 # Secrets
 *.pem
 credentials.json
+
+# RAG index (rebuild with scripts/build_rag_index.py)
+backend/data/rag/
+*.pkl

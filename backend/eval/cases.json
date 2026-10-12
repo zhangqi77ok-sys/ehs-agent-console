@@ -34,11 +34,24 @@
   },
   {
     "id": "search_regulations",
-    "name": "检索法规摘要（闭环）",
+    "name": "检索法规摘要（闭环·向量RAG）",
     "input": "隐患闭环的法规要求是什么？",
     "expect": {
       "tools_required": ["search_regulations"],
-      "reply_keywords_any": ["闭环", "整改", "隐患"],
+      "reply_keywords_any": ["闭环", "整改", "隐患", "24", "复查"],
+      "tool_result_keywords_any": ["\"backend\": \"faiss\"", "闭环要求", "local_tfidf", "\"embedding\": \"openai\""],
+      "must_have_final": true,
+      "must_succeed": true
+    }
+  },
+  {
+    "id": "search_regulations_permit",
+    "name": "检索法规摘要（作业票·向量RAG）",
+    "input": "高处作业和动火要办什么手续？",
+    "expect": {
+      "tools_required": ["search_regulations"],
+      "reply_keywords_any": ["作业票", "监护", "动火", "高处"],
+      "tool_result_keywords_any": ["\"backend\": \"faiss\"", "作业票"],
       "must_have_final": true,
       "must_succeed": true
     }

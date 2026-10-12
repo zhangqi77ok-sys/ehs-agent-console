@@ -56,11 +56,15 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     },
     {
         "name": "search_regulations",
-        "description": "在示例 EHS 法规摘要中检索相关条款（v0 关键词 stub）。",
+        "description": (
+            "在示例 EHS 法规摘要中做向量检索（切块 + 嵌入 + FAISS），"
+            "返回带 score/heading/chunk_id 的相关条款，回答法规/闭环/作业票/分级类问题必用。"
+        ),
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "法规相关问题或关键词"},
+                "query": {"type": "string", "description": "法规相关问题或自然语言查询"},
+                "top_k": {"type": "integer", "description": "返回条数，默认 3"},
             },
             "required": ["query"],
         },

@@ -16,7 +16,7 @@
 |------|------|
 | 查隐患台账 | `query_hazard_ledger`（内存示例数据） |
 | 开整改单 | `create_corrective_ticket` |
-| 法规摘要 | `search_regulations`（对样例 markdown 做关键词 stub） |
+| 法规摘要 | `search_regulations`（切块 + 嵌入 + **FAISS**；网关 embeddings 优先，TF-IDF 兜底） |
 | 可视化（SSE） | 左侧对话，右侧**实时**刷步骤 / 工具 / 预算（`POST /api/chat`） |
 | 可靠性 | LLM/工具超时 + 退避重试；前端「强制超时」练习 |
 | 评测门禁 | `backend/eval/cases.json` + `scripts/run_eval.py`（真实 LLM） |
@@ -101,7 +101,7 @@ cd frontend && npm run dev
 
 1. **问题**：EHS 现场要查台账、开单、对照制度，人工慢且难追踪 Agent 决策过程。
 2. **方案**：手写 ReAct 风格循环；工具边界清晰；SSE 把每一步暴露出来（可观测）。
-3. **取舍**：默认真实模型；台账先内存示例；RAG 先做关键词 stub，Week2 换向量库。
+3. **取舍**：默认真实模型；台账先内存示例；RAG 已上本地向量检索（FAISS），会话/权限仍后置。
 4. **工程信号**：步数预算熔断、超时退避重试、5 条评测脚本门禁、控制台状态/错误可行动。
 
 更细的设计见 [docs/architecture.md](docs/architecture.md)。
@@ -117,6 +117,23 @@ cd frontend && npm run dev
 | 6 | 控制台打磨（状态栏/预算熔断/错误文案/评测露出） | ✅ |
 | 7 | [面试讲法](docs/interview.md) | ✅ |
 
+## Week2 进度
+
+| Day | 内容 | 状态 |
+|-----|------|------|
+| 1 | 本地向量 RAG（切块 + FAISS + 网关/本地嵌入） | ✅ 见 [08 · 向量 RAG](docs/lessons/08-vector-rag.md) |
+| 2+ | 多轮会话 / 更严引用评测 | 规划中 |
+
+重建索引：
+
+```bash
+cd backend && source .venv/bin/activate
+pip install -r requirements.txt
+python scripts/build_rag_index.py --force
+```
+
+可选 `.env`：`OPENAI_EMBEDDING_MODEL=…`（网关支持 `/v1/embeddings` 时）；不通则自动 `local_tfidf`。
+
 ## 教学文档
 
 每次代码改动都会写一篇中文教学文档（目标、关键代码、跟练、思考题），目录见 [docs/lessons/](docs/lessons/README.md)。
@@ -131,7 +148,7 @@ cd frontend && npm run dev
 
 ## 评测门禁（Week1 Day5）
 
-固定 5 条业务用例，走与 UI 相同的 `run_agent`（真实 LLM），断言工具名 + 回答关键词；挂了非零退出码。
+固定业务用例（含法规向量 RAG 断言），走与 UI 相同的 `run_agent`（真实 LLM），断言工具名 + 回答关键词；挂了非零退出码。
 
 ```bash
 cd backend

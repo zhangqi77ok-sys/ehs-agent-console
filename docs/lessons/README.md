@@ -15,10 +15,12 @@
 | [05](./05-eval-set.md) | 评测集 —— 给 Agent 加一道「门禁」 | `641a1b3` · Week1 Day5 · `eval/cases.json` + `scripts/run_eval.py` |
 | [06](./06-polish.md) | 控制台打磨 —— Demo / 面试更好讲 | `59e420f` · Week1 Day6 · 顶栏状态 / 预算熔断 / 错误文案 / 评测露出 |
 | [07](./07-interview.md) | 面试复盘 —— 把本仓库讲成 Offer 故事 | `de11d1f` · Week1 Day7 · 见 [interview.md](../interview.md) |
+| [08](./08-vector-rag.md) | 本地向量 RAG —— 切块 / 嵌入 / FAISS | Week2 Day1 · `search_regulations` 真检索 |
 
 ## 建议学习顺序
 
 1. 先通读仓库根 [README](../../README.md) 与 [architecture.md](../architecture.md)。
 2. 按编号做「跟练步骤」，边改边看右栏。
 3. Day7 精读 [面试讲法](../interview.md)，对着控制台练口述。
-4. 做完思考题后，对照 Issue [#1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) 勾 Day 清单。
+4. Week2 从 [08 · 向量 RAG](./08-vector-rag.md) 继续。
+5. 做完思考题后，对照 Issue [#1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) 勾 Day 清单。

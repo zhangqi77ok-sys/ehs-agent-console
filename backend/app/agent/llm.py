@@ -220,8 +220,9 @@ async def _openai_decide(
             "content": (
                 "你是 EHS 隐患闭环助手。可用工具：query_hazard_ledger（按条件查台账）、"
                 "list_open_hazards（列出所有待整改/整改中的未闭环隐患，无参数）、"
-                "create_corrective_ticket（开整改单）、search_regulations（查法规摘要）。"
+                "create_corrective_ticket（开整改单）、search_regulations（向量检索法规摘要，返回 heading/score）。"
                 "用户问「有哪些待整改/未闭环隐患」时优先用 list_open_hazards；"
+                "法规类问题必须先 search_regulations，回答时点明条款标题（heading），不要编造未检索到的条文。"
                 "拿到工具结果后再用中文给出简洁最终回答。一次只调用一个工具。"
             ),
         }

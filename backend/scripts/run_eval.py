@@ -53,6 +53,16 @@ def _tools_called(steps: list[dict[str, Any]]) -> list[str]:
     return names
 
 
+
+def _tool_result_blob(steps: list[dict[str, Any]]) -> str:
+    """Serialize tool_result payloads for keyword checks (RAG evidence etc.)."""
+    parts: list[str] = []
+    for s in steps:
+        if s.get("kind") == "tool_result":
+            parts.append(json.dumps(s.get("result"), ensure_ascii=False, default=str))
+    return "\n".join(parts)
+
+
 def _has_final(steps: list[dict[str, Any]], reply: str) -> bool:
     if any(s.get("kind") == "final" for s in steps):
         return True
@@ -94,6 +104,14 @@ def _check_case(case: dict[str, Any], result: dict[str, Any]) -> tuple[bool, lis
     for k in kw_all:
         if k not in reply:
             reasons.append(f"最终回答缺少关键词「{k}」")
+
+
+    tr_any = expect.get("tool_result_keywords_any") or []
+    if tr_any:
+        blob = _tool_result_blob(steps)
+        if not any(k in blob for k in tr_any):
+            reasons.append(f"tool_result 未含关键词任一 {tr_any}")
+
 
     if expect.get("must_have_final", True) and not _has_final(steps, reply):
         reasons.append("没有 final 步骤 / 空回复")

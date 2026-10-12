@@ -26,6 +26,16 @@ class Settings(BaseSettings):
     llm_retry_backoff_s: float = 0.8  # base for exponential backoff: base * 2^attempt
     tool_timeout_s: float = 15.0
 
+    # RAG (Week2)
+    openai_embedding_model: str = ""  # e.g. text-embedding-3-small; empty → skip gateway
+    rag_embedding_prefer: str = "openai"  # openai | local — openai tries gateway then falls back
+    rag_top_k: int = 3
+    rag_chunk_chars: int = 280
+    rag_chunk_overlap: int = 60
+    rag_index_dir: str = str(_BACKEND_DIR / "data" / "rag")
+    rag_regs_path: str = str(_BACKEND_DIR / "app" / "data" / "ehs_regs.md")
+    rag_load_persisted: bool = True
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

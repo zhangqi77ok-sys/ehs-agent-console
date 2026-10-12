@@ -20,7 +20,7 @@ FastAPI
 tools/
   query_hazard_ledger
   create_corrective_ticket
-  search_regulations   ← v0 关键词 stub，非向量库
+  search_regulations   ← Week2：app/rag（切块 + embed + FAISS）
 ```
 
 非流式 JSON 仍可用：`POST /api/chat/complete`（脚本 / smoke test）。
@@ -44,7 +44,7 @@ tools/
 | 周次 | 内容 |
 |------|------|
 | Week1 | 问答 → 工具 → SSE → 超时重试 → 评测门禁 → 控制台打磨 → [面试讲法](./interview.md) ✅ |
-| Week2 | 真向量 RAG、会话持久、更严评测（规划中） |
+| Week2 | 真向量 RAG ✅（Day1）；会话持久、更严评测（后续） |
 | Week3 | 登录权限、一键演示、部署（规划中） |
 
 ## 为什么先不用框架
