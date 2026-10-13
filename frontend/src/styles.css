@@ -1,0 +1,144 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f6f8;
+  --card: #fff;
+  --line: #e2e8f0;
+  --text: #1a202c;
+  --muted: #64748b;
+  --accent: #0f766e;
+  --danger: #b91c1c;
+  --warn: #c2410c;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.app { min-height: 100vh; }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #0f172a;
+  color: #f8fafc;
+}
+.brand { display: flex; gap: 0.75rem; align-items: baseline; }
+.brand .muted { color: #94a3b8; font-size: 0.85rem; }
+.identity { display: flex; gap: 1rem; }
+.identity label { display: flex; gap: 0.4rem; align-items: center; font-size: 0.9rem; }
+.identity select {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+}
+.panel { padding: 1rem 1.25rem 2rem; }
+.grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1.1fr;
+  gap: 1rem;
+}
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: 1fr; }
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.card h2 { margin: 0 0 0.75rem; font-size: 1.05rem; }
+.card h3 { margin: 0.25rem 0; }
+.muted { color: var(--muted); }
+.filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+.filters input, .filters select, textarea, .create-form input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  font: inherit;
+}
+.filters input { flex: 1; min-width: 100px; }
+.list { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; }
+.list li {
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.list li:hover { background: #f8fafc; }
+.list li.active { background: #ecfdf5; border-left: 3px solid var(--accent); }
+.list .title { font-weight: 600; margin: 0.2rem 0; }
+.list .meta, .list .id { font-size: 0.8rem; color: var(--muted); }
+.row { display: flex; gap: 0.5rem; align-items: center; }
+.row.between { justify-content: space-between; }
+.tag {
+  font-size: 0.75rem;
+  background: #e2e8f0;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+.tag.danger { background: #fee2e2; color: var(--danger); }
+.kv { display: grid; grid-template-columns: 5rem 1fr; gap: 0.35rem 0.75rem; }
+.kv dt { color: var(--muted); }
+.create-form textarea { width: 100%; margin: 0.5rem 0; }
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.ghost { background: #e2e8f0; color: var(--text); }
+button.link { background: transparent; color: var(--accent); padding: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.ticket {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.evidence { background: #f0fdf4; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+.banner.error {
+  background: #fef2f2;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+.audit { margin-top: 1rem; overflow: auto; }
+.audit table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.audit th, .audit td {
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  padding: 0.4rem 0.35rem;
+  vertical-align: top;
+}
+.audit tr.denied td { color: var(--warn); }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  width: min(480px, 92vw);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.modal textarea { width: 100%; margin: 0.75rem 0; }
+.empty { color: var(--muted); cursor: default !important; }
