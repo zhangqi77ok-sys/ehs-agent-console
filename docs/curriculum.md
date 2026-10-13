@@ -15,3 +15,12 @@
 | 9 | 面试讲法 | [09-interview](./lessons/09-interview.md) → [interview.md](./interview.md) | ✅ |
 
 标准：真业务可演示 · 可观测 · 有门禁 · 中文课记。
+
+## 工程补强（成都 20–30K）
+
+| 序号 | 主题 | 状态 |
+|------|------|------|
+| Eng-01 | [持久化+迁移](./lessons/eng-01-persistence.md) | ✅ |
+| Eng-02 | pytest + GitHub Actions | 下一刀 |
+| Eng-03 | 可观测 + 认真权限 | 待做 |
+| Eng-04 | 简历项目表述 | 待做 |

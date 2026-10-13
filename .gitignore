@@ -31,3 +31,7 @@ credentials.json
 # RAG index (rebuild with scripts/build_rag_index.py)
 backend/data/rag/
 *.pkl
+
+# eng-1 sqlite
+backend/data/*.db
+backend/data/*.db-*

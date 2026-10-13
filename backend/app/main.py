@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
@@ -15,12 +16,25 @@ from .agent.loop import run_agent, stream_agent
 from .api.domain import router as domain_router
 from .auth.tenant import resolve_identity
 from .config import settings
+from .db.seed import seed_if_empty
+from .db.session import init_db
 from .sessions import sessions
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    from pathlib import Path as _Path
+
+    _Path("data").mkdir(parents=True, exist_ok=True)
+    init_db()
+    seed_if_empty()
+    yield
+
 
 app = FastAPI(
     title="EHS Agent Console",
-    version="2.0.0",
-    description="v2: domain → agent → SSE → reliability → eval → RAG → session → tenant → interview",
+    version="2.1.0",
+    description="v2 + eng-1 persistence (SQLAlchemy/Alembic)",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -65,8 +79,9 @@ def health() -> dict[str, Any]:
     tickets = list_corrective_tickets()
     return {
         "status": "ok",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "curriculum": "ch1-9",
+        "persistence": "sqlalchemy",
         "hazard_count": hazards["count"],
         "ticket_count": tickets["count"],
         "as_of": hazards.get("as_of"),

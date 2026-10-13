@@ -16,6 +16,8 @@ Python FastAPI **手写 Agent 循环** + Vite/React（领域台账页 + Agent SS
 | 8 | 租户 / 角色请求头权限雏形 |
 | 9 | [面试讲法](docs/interview.md) |
 
+持久化：默认 SQLite（`DATABASE_URL`），Alembic 迁移见 `backend/alembic/`，课记 [Eng-01](docs/lessons/eng-01-persistence.md)。
+
 ## 运行（PowerShell）
 
 ```powershell

@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     rag_regs_path: str = str(_BACKEND_DIR / "app" / "data" / "ehs_regs.md")
     rag_load_persisted: bool = True
 
+    # Persistence (eng-1)
+    database_url: str = "sqlite:///./data/ehs.db"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
