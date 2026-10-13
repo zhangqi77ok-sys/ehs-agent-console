@@ -21,3 +21,21 @@ Agent 页勾选 **SSE**：`fetch` + `ReadableStream` 解析 `event:` / `data:` �
 ## 与 Ch4 关系
 
 SSE 是**单次请求内**的流；进程被杀则中断。Durable run（Ch4）把 checkpoint 落库，才能跨请求 resume。
+
+
+## 面试官追问（≥5）
+
+**Q1：SSE 与 WebSocket 为何选 SSE？**  
+A：服务端单向推步骤足够；实现简单，HTTP 友好。
+
+**Q2：事件有哪些？**  
+A：identity/budget/step_start/tool_*/final/paused/error/done（及 memory/supervisor）。
+
+**Q3：中途断线？**  
+A：SSE 丢；靠 durable run 恢复。
+
+**Q4：如何在前端解析？**  
+A：`frontend/src/api/agent.js` 读 event/data 行。
+
+**Q5：force_timeout 演示意义？**  
+A：证明错误路径可观测，不是只 Happy Path。

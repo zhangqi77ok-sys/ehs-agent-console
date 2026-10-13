@@ -1,5 +1,43 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { agentChat, agentChatStream } from "../api/agent.js";
+
+function StepItem({ s }) {
+  return (
+    <li>
+      <span className="tag">
+        {s.kind || s.note || "?"}
+        {s.agent ? ` · ${s.agent}` : ""}
+      </span>{" "}
+      {s.kind === "tool_call" && (
+        <code>
+          {s.name}({JSON.stringify(s.arguments || {})})
+        </code>
+      )}
+      {s.kind === "tool_result" && (
+        <code>
+          {s.name} → {JSON.stringify(s.result || {}).slice(0, 160)}
+        </code>
+      )}
+      {s.kind === "final" && <span>{s.content}</span>}
+      {s.kind === "note" && <span className="muted">{s.detail || s.note}</span>}
+    </li>
+  );
+}
+
+function TimelineColumn({ title, active, steps }) {
+  return (
+    <div className={`timeline-col ${active ? "active" : "idle"}`}>
+      <h3>
+        {title} {active ? <span className="pill">active</span> : <span className="muted small">idle</span>}
+      </h3>
+      {steps.length === 0 ? (
+        <p className="muted small">本轮未调度</p>
+      ) : (
+        <ol className="steps-list">{steps.map((s, i) => <StepItem key={i} s={s} />)}</ol>
+      )}
+    </div>
+  );
+}
 
 export default function AgentPanel({ tenantId, role }) {
   const [input, setInput] = useState("有哪些未闭环隐患？");
@@ -14,7 +52,21 @@ export default function AgentPanel({ tenantId, role }) {
   const [pauseAfter, setPauseAfter] = useState("");
   const [multiAgent, setMultiAgent] = useState(true);
   const [route, setRoute] = useState("");
+  const [timeline, setTimeline] = useState([]);
   const bottomRef = useRef(null);
+
+  const invSteps = useMemo(
+    () => steps.filter((s) => s.agent === "investigator"),
+    [steps]
+  );
+  const clerkSteps = useMemo(
+    () => steps.filter((s) => s.agent === "clerk"),
+    [steps]
+  );
+  const superSteps = useMemo(
+    () => steps.filter((s) => s.agent === "supervisor" || s.note === "supervisor_route" || s.note === "handoff"),
+    [steps]
+  );
 
   const send = async () => {
     const text = input.trim();
@@ -27,6 +79,7 @@ export default function AgentPanel({ tenantId, role }) {
     setInput("");
     setSteps([]);
     setRoute("");
+    setTimeline([]);
 
     const pauseAfterSteps = pauseAfter ? Number(pauseAfter) : null;
 
@@ -42,7 +95,10 @@ export default function AgentPanel({ tenantId, role }) {
           pauseAfterSteps,
           multiAgent,
           onEvent: (name, data) => {
-            if (name === "supervisor") setRoute(data.route || "");
+            if (name === "supervisor") {
+              setRoute(data.route || "");
+              setTimeline(data.timeline || []);
+            }
             if (name === "budget") setBudget(data);
             if (["tool_call", "tool_result", "final", "note"].includes(name)) {
               live.push(data);
@@ -60,6 +116,7 @@ export default function AgentPanel({ tenantId, role }) {
         setBudget(done?.budget || null);
         setStatus(done?.status || "completed");
         setRoute(done?.supervisor?.route || route);
+        setTimeline(done?.supervisor?.timeline || []);
       } else {
         const res = await agentChat({
           tenantId,
@@ -71,6 +128,7 @@ export default function AgentPanel({ tenantId, role }) {
           multiAgent,
         });
         setRoute(res.supervisor?.route || "");
+        setTimeline(res.supervisor?.timeline || []);
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: res.reply || "(无回复)" },
@@ -93,7 +151,13 @@ export default function AgentPanel({ tenantId, role }) {
       <div className="agent-grid">
         <div className="card chat-card">
           <div className="row between">
-            <h2>Agent 对话 {route ? <span className="pill">→ {route}</span> : null}</h2>
+            <h2>
+              Agent 对话{" "}
+              {route ? <span className="pill">→ {route}</span> : null}
+              {timeline.length > 1 ? (
+                <span className="muted small"> · {timeline.join(" → ")}</span>
+              ) : null}
+            </h2>
             <div className="row gap">
               <label className="muted small">
                 <input
@@ -133,8 +197,7 @@ export default function AgentPanel({ tenantId, role }) {
             </div>
           </div>
           <p className="muted small">
-            工具只调领域层（同 Domain 台账的 CAPA/ACL/审计）。试：「有哪些未闭环隐患」「查灭火器」
-            「给 HZ-2026-001 开整改单，措施：更换过期灭火器」
+            工具只调领域层。多 Agent 试：「先查灭火器隐患再给 HZ-2026-001 开整改单，措施：更换过期灭火器」——可见 Investigator / Clerk 双时间线。
           </p>
           <div className="chat-log">
             {messages.length === 0 && (
@@ -174,25 +237,38 @@ export default function AgentPanel({ tenantId, role }) {
             状态：<strong>{status || "—"}</strong>
             {budget ? ` · 步数 ${budget.used}/${budget.max}` : ""}
           </p>
-          <ol className="steps-list">
-            {steps.map((s, i) => (
-              <li key={i}>
-                <span className="tag">{s.kind || s.note || "?"}{s.agent ? ` · ${s.agent}` : ""}</span>{" "}
-                {s.kind === "tool_call" && (
-                  <code>
-                    {s.name}({JSON.stringify(s.arguments || {})})
-                  </code>
-                )}
-                {s.kind === "tool_result" && (
-                  <code>
-                    {s.name} → {JSON.stringify(s.result || {}).slice(0, 180)}
-                  </code>
-                )}
-                {s.kind === "final" && <span>{s.content}</span>}
-                {s.kind === "note" && <span className="muted">{s.detail || s.note}</span>}
-              </li>
-            ))}
-          </ol>
+          {multiAgent ? (
+            <>
+              {superSteps.length > 0 && (
+                <div className="supervisor-strip">
+                  <strong>Supervisor</strong>
+                  <ol className="steps-list">
+                    {superSteps.map((s, i) => (
+                      <StepItem key={i} s={s} />
+                    ))}
+                  </ol>
+                </div>
+              )}
+              <div className="timeline-grid">
+                <TimelineColumn
+                  title="Investigator（只读）"
+                  active={invSteps.length > 0}
+                  steps={invSteps}
+                />
+                <TimelineColumn
+                  title="Clerk（可写）"
+                  active={clerkSteps.length > 0}
+                  steps={clerkSteps}
+                />
+              </div>
+            </>
+          ) : (
+            <ol className="steps-list">
+              {steps.map((s, i) => (
+                <StepItem key={i} s={s} />
+              ))}
+            </ol>
+          )}
         </div>
       </div>
     </div>

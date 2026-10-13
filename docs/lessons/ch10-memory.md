@@ -11,3 +11,21 @@
 
 - `app/memory/compress.py` · `session_store.py`
 - `agent_sessions` 表 · `POST /api/agent/chat` 的 `session_id` / `memory` 字段
+
+
+## 面试官追问（≥5）
+
+**Q1：Session 和 durable checkpoint 区别？**  
+A：Session（`agent_sessions`）跨 turn 对话；checkpoint 是单次 run 工具轨迹暂停续跑（Ch4）。
+
+**Q2：压缩策略？**  
+A：超 `memory_max_chars` 时，旧轮次 `mock_summarize`，保留最近 K 轮原文（`compress.py`）。测例 `test_long_history_agent_still_completes` 证明压缩后仍能查台账。
+
+**Q3：摘要用真 LLM 吗？**  
+A：默认 mock 确定性摘要，保证 CI；可换成 LLM summarize，但要防摘要丢关键隐患 ID——可加实体卡片记忆。
+
+**Q4：压缩会不会丢开单上下文？**  
+A：保留 recent；关键 ID 应在 recent 或摘要里。更深做法：结构化 memory（hazard_id 列表）与原文分离。
+
+**Q5：如何演示给面试官？**  
+A：同一 `session_id` 连发多轮长闲聊，看响应 `memory.compressed=true`，再发「查灭火器」仍成功。

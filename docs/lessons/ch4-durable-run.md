@@ -27,3 +27,21 @@ Runtime 页：消息「有哪些未闭环隐患？」，pause_after_steps=1 → 
 - checkpoint 存的是**决策状态**（工具结果），不是聊天 UI 缓存  
 - resume **不重放**已成功的工具副作用（除非你故意设计 idempotent replay）——本实现从 next_index 继续 LLM 决策  
 - 与 HITL（Ch5）共用 status：`awaiting_approval` 时禁止盲目 resume
+
+
+## 面试官追问（≥5）
+
+**Q1：checkpoint 存什么？**  
+A：message/history/tool_results/steps/budget_used。`agent_runs.checkpoint_json`。
+
+**Q2：paused 与 awaiting_approval 区别？**  
+A：前者步数暂停；后者 HITL 等待。
+
+**Q3：resume API？**  
+A：`api/runs.py` 续跑同一 run_id。
+
+**Q4：多实例部署注意？**  
+A：状态在 DB；要避免双消费者同时 resume（可加锁/状态 CAS）。
+
+**Q5：和 session memory 区别？**  
+A：run 级 vs 对话级（Ch10）。

@@ -27,3 +27,21 @@ cd backend && LLM_PROVIDER=mock python scripts/run_eval.py -v
 
 1. `pytest -q` 含 eval 绿  
 2. （可选）`docker compose up --build` → 浏览器 :5173 走同一套 Domain/Agent/Runtime
+
+
+## 面试官追问（≥5）
+
+**Q1：cases 断言什么？**  
+A：tools_required / reply_keywords / must_succeed。`eval/cases.json`。
+
+**Q2：为何 mock 必须进 CI？**  
+A：防回归；真 LLM 抖不能挡合并。
+
+**Q3：Compose 服务？**  
+A：postgres + api + nginx（见 `docker-compose.yml`）。
+
+**Q4：迁移何时跑？**  
+A：app lifespan alembic upgrade。
+
+**Q5：Eval 失败你怎么查？**  
+A：看实际 tools 列表与 reply；对照 mock 路由。

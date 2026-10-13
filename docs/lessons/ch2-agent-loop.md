@@ -44,3 +44,21 @@
 | 租户怎么进工具？ | Identity 头 → ToolContext，repo 强制 `tenant_id` 过滤 |
 
 下一章 Ch3：同一循环用 **SSE** 推送 steps/budget，前端可边跑边看。
+
+
+## 面试官追问（≥5）
+
+**Q1：一轮循环里 decide 失败怎么办？**  
+A：捕获 `LLMCallError`，yield error/final，status failed。`loop.py`。
+
+**Q2：工具参数校验在哪？**  
+A：`run_tool` TypeError→错误返回；领域层再校验业务。
+
+**Q3：history 如何影响 mock？**  
+A：mock 主要看最新 tool_results 与 user message；真 LLM 带 history。
+
+**Q4：为何工具结果要回灌？**  
+A：observe 需要；否则无法生成基于台账的 final。
+
+**Q5：最大步数如何配置？**  
+A：`settings.max_agent_steps`。

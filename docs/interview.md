@@ -72,3 +72,28 @@ A：pytest/开发默认 SQLite；Compose 起 Postgres + alembic on start + nginx
 回应：领域状态机与审计是硬边界；Agent 轨迹可暂停、可审批、可回放、可评测——这是应用后端能力，不是聊天皮肤。
 
 **你可反问：**贵司 Agent 写操作的审批与审计现在落在哪一层？有没有 trajectory eval？
+
+---
+
+## G. Auth / RAG / Memory / Multi-Agent（Ch8–Ch11）
+
+**Q14：多租户鉴权怎么讲？**  
+A：JWT / API Key / 演示头同一 `get_identity`；隔离在查询层。见 `docs/lessons/ch8-auth-obs.md`。
+
+**Q15：法规 RAG 没接向量库算不算？**  
+A：有切块、本地 embedding、score、工具进 eval；生产可换 pgvector。路径 `app/rag/`。
+
+**Q16：长对话如何不炸？**  
+A：session 落库 + char 预算压缩。`app/memory/compress.py`。
+
+**Q17：多 Agent 如何证明真派发？**  
+A：工具 allowlist + UI 双时间线 + handoff 测例。`app/agent/supervisor.py`。
+
+**Q18：就业材料在哪？**  
+A：`docs/jd-gap-matrix.md`、`oral-15min.md`、`mock-interview.md`、`failure-mode-drill.md`。
+
+---
+
+## H. 把握与风险（诚实）
+
+仓库不能保证 offer。冲刺 20–30k 时：本仓把高频技术追问落到代码与 Demo；剩余风险是**口语流畅度、真 LLM 临场、公司业务匹配、学历/年限门槛**。用 `mock-interview.md` 闭卷练到不看稿。

@@ -83,3 +83,33 @@ def test_investigator_cannot_run_write_tool_directly(client, eng_headers, monkey
         assert out.get("denied") is True
     finally:
         db.close()
+
+
+def test_supervisor_handoff_dual_timeline(client, eng_headers, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "mock")
+    from app.config import Settings
+    import app.config as config_mod
+
+    config_mod.settings = Settings(
+        database_url=config_mod.settings.database_url,
+        llm_provider="mock",
+        hitl_enabled=False,
+    )
+    r = client.post(
+        "/api/agent/chat",
+        headers=eng_headers,
+        json={
+            "message": "先查灭火器隐患，再给 HZ-2026-001 开整改单，措施：更换过期灭火器",
+            "multi_agent": True,
+        },
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["supervisor"].get("handoff") is True
+    agents = {s.get("agent") for s in body["steps"]}
+    assert "investigator" in agents
+    assert "clerk" in agents
+    assert "supervisor" in agents
+    tools = [s.get("name") for s in body["steps"] if s.get("kind") == "tool_call"]
+    assert any(t in tools for t in ("query_hazard_ledger", "list_open_hazards"))
+    assert "create_corrective_ticket" in tools

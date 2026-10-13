@@ -96,3 +96,21 @@ cd ../frontend && npm run build
 ---
 
 自检：若只能背「跑了哪些命令」而讲不清「为何 close 要证据 / 非法迁移为何写审计」，本课记还没读懂。
+
+
+## 面试官追问（补强）
+
+**Q1：状态机非法迁移怎么处理？**  
+A：纯函数拒绝并返回错误；API/工具层写审计。`domain/capa.py`。
+
+**Q2：evidence 存在哪？**  
+A：`tickets.evidence_note`；关闭时强制非空。
+
+**Q3：如何证明非贴皮台账？**  
+A：pytest 覆盖迁移/ACL/审计；UI 可点推进。
+
+**Q4：多租户种子数据？**  
+A：`seed.py` 按 tenant；测例换 `other-plant`。
+
+**Q5：领域 API 与 Agent 工具关系？**  
+A：同一 `repo`；Agent 不得绕过。

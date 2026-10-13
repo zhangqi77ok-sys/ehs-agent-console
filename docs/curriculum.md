@@ -17,7 +17,7 @@
 | Ch9 | 法规/制度向量 RAG 工具（切块+检索，可 mock embedding） | ✅ | [ch9-rag](./lessons/ch9-rag.md) |
 | Ch10 | 会话记忆分层 + 上下文压缩（长对话不炸预算） | ✅ | [ch10-memory](./lessons/ch10-memory.md) |
 | Ch11 | Supervisor 多 Agent（排查员/开单员）真派发 | ✅ | [ch11-multi-agent](./lessons/ch11-multi-agent.md) |
-| Ch12 | 就业包：JD 对照表 + Demo 脚本 + 作品集 README | ⏳ | — |
+| Ch12 | 就业包：JD 对照表 + Demo 脚本 + 作品集 README | ✅ | [ch12-portfolio](./lessons/ch12-portfolio.md) |
 
 ## 硬约束
 
