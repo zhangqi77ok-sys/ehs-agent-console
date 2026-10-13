@@ -39,6 +39,22 @@ class Settings(BaseSettings):
     # Persistence (eng-1)
     database_url: str = "sqlite:///./data/ehs.db"
 
+    # Observability + auth (eng-3)
+    log_level: str = "INFO"
+    auth_mode: str = "hybrid"  # headers | hybrid | strict
+    jwt_secret: str = "dev-change-me-ehs-agent-console-32b!"
+    jwt_ttl_s: int = 86400
+    # key:tenant:role,...
+    api_keys: str = (
+        "demo-admin:default:admin,"
+        "demo-engineer:default:ehs_engineer,"
+        "demo-viewer:default:viewer,"
+        "demo-plant-a:plant_a:ehs_engineer,"
+        "demo-plant-b:plant_b:viewer"
+    )
+    auth_allow_demo_login: bool = True
+    demo_login_secret: str = "ehs-demo"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

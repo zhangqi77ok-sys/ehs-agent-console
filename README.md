@@ -20,6 +20,8 @@ Python FastAPI **手写 Agent 循环** + Vite/React（领域台账页 + Agent SS
 
 测试 / CI：`cd backend && pytest -q`；Actions 工作流见课记 [Eng-02](docs/lessons/eng-02-pytest-ci.md)（需本机 push `ci.yml`，因 token 缺 workflow scope）。
 
+可观测/鉴权：`X-Request-Id` + JWT/API Key，`AUTH_MODE=hybrid|strict`；课记 [Eng-03](docs/lessons/eng-03-obs-auth.md)。
+
 ## 运行（PowerShell）
 
 ```powershell

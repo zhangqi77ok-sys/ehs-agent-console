@@ -1,4 +1,4 @@
-"""EHS Agent Console API — v2 curriculum (Ch1–9)."""
+"""EHS Agent Console API — v2 + eng-1/2/3 (persist, CI, obs+auth)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import json
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -14,11 +14,14 @@ from pydantic import BaseModel, Field
 from .agent.llm import LLMCallError, LLMConfigError
 from .agent.loop import run_agent, stream_agent
 from .api.domain import router as domain_router
-from .auth.tenant import resolve_identity
+from .auth.deps import get_current_identity
+from .auth.routes import router as auth_router
 from .config import settings
 from .db.seed import seed_if_empty
 from .db.session import init_db
+from .obs import RequestContextMiddleware
 from .sessions import sessions
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -32,11 +35,13 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="EHS Agent Console",
-    version="2.1.0",
-    description="v2 + eng-1 persistence (SQLAlchemy/Alembic)",
+    version="2.2.0",
+    description="v2 + eng-1 persist + eng-2 pytest + eng-3 obs/auth",
     lifespan=lifespan,
 )
 
+# RequestContext outermost after CORS so access log sees final status
+app.add_middleware(RequestContextMiddleware, log_level=settings.log_level)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list or ["*"],
@@ -46,6 +51,7 @@ app.add_middleware(
 )
 
 app.include_router(domain_router)
+app.include_router(auth_router)
 
 
 class ChatRequest(BaseModel):
@@ -53,6 +59,7 @@ class ChatRequest(BaseModel):
     history: list[dict[str, Any]] = Field(default_factory=list)
     force_timeout: bool = False
     session_id: str | None = None
+    # Kept for UI compatibility; ignored when JWT/API key present (server identity wins).
     tenant_id: str = "default"
     role: str = "ehs_engineer"
 
@@ -79,9 +86,11 @@ def health() -> dict[str, Any]:
     tickets = list_corrective_tickets()
     return {
         "status": "ok",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "curriculum": "ch1-9",
         "persistence": "sqlalchemy",
+        "auth_mode": settings.auth_mode,
+        "observability": "request_id+json_access_log",
         "hazard_count": hazards["count"],
         "ticket_count": tickets["count"],
         "as_of": hazards.get("as_of"),
@@ -96,12 +105,22 @@ def health() -> dict[str, Any]:
 
 
 @app.post("/api/sessions")
-def create_session(body: SessionCreate) -> dict[str, Any]:
+def create_session(
+    body: SessionCreate,
+    identity: dict[str, Any] = Depends(get_current_identity),
+) -> dict[str, Any]:
+    # Prefer authenticated identity over spoofable body fields when JWT/API key.
+    if identity.get("auth_method") in {"jwt", "api_key"}:
+        return sessions.create(tenant_id=identity["tenant_id"], role=identity["role"])
     return sessions.create(tenant_id=body.tenant_id, role=body.role)
 
 
 @app.get("/api/sessions/{session_id}")
-def get_session(session_id: str) -> dict[str, Any]:
+def get_session(
+    session_id: str,
+    identity: dict[str, Any] = Depends(get_current_identity),
+) -> dict[str, Any]:
+    _ = identity
     rec = sessions.get(session_id)
     if not rec:
         raise HTTPException(status_code=404, detail="session not found")
@@ -109,8 +128,12 @@ def get_session(session_id: str) -> dict[str, Any]:
 
 
 @app.post("/api/chat")
-async def api_chat(body: ChatRequest) -> StreamingResponse:
-    identity = resolve_identity(body.tenant_id, body.role)
+async def api_chat(
+    body: ChatRequest,
+    identity: dict[str, Any] = Depends(get_current_identity),
+) -> StreamingResponse:
+    tenant_id = identity["tenant_id"]
+    role = identity["role"]
     hist = list(body.history or [])
     if body.session_id:
         server_hist = sessions.history(body.session_id)
@@ -124,8 +147,8 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
                 body.message,
                 hist,
                 force_timeout=body.force_timeout,
-                tenant_id=body.tenant_id,
-                role=body.role,
+                tenant_id=tenant_id,
+                role=role,
             ):
                 if evt["event"] == "done":
                     final_reply = evt["data"].get("reply") or ""
@@ -136,6 +159,11 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
                             evt["data"]["session_turns"] = sessions.get(body.session_id).get("turns")
                         except KeyError:
                             evt["data"]["session_error"] = "invalid session_id"
+                    evt["data"]["identity"] = {
+                        "tenant_id": tenant_id,
+                        "role": role,
+                        "auth_method": identity.get("auth_method"),
+                    }
                 yield (
                     f"event: {evt['event']}\n"
                     f"data: {json.dumps(evt['data'], ensure_ascii=False)}\n\n"
@@ -152,14 +180,19 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
-            "X-Tenant-Id": identity["tenant_id"],
-            "X-Role": identity["role"],
+            "X-Tenant-Id": tenant_id,
+            "X-Role": role,
         },
     )
 
 
 @app.post("/api/chat/complete", response_model=ChatResponse)
-async def api_chat_complete(body: ChatRequest) -> ChatResponse:
+async def api_chat_complete(
+    body: ChatRequest,
+    identity: dict[str, Any] = Depends(get_current_identity),
+) -> ChatResponse:
+    tenant_id = identity["tenant_id"]
+    role = identity["role"]
     hist = list(body.history or [])
     if body.session_id:
         server_hist = sessions.history(body.session_id)
@@ -170,8 +203,8 @@ async def api_chat_complete(body: ChatRequest) -> ChatResponse:
             body.message,
             hist,
             force_timeout=body.force_timeout,
-            tenant_id=body.tenant_id,
-            role=body.role,
+            tenant_id=tenant_id,
+            role=role,
         )
     except (LLMConfigError, LLMCallError) as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
@@ -185,6 +218,10 @@ async def api_chat_complete(body: ChatRequest) -> ChatResponse:
         reply=result["reply"],
         steps=result["steps"],
         budget=result["budget"],
-        identity=result.get("identity"),
+        identity=result.get("identity") or {
+            "tenant_id": tenant_id,
+            "role": role,
+            "auth_method": identity.get("auth_method"),
+        },
         session_id=sid,
     )
