@@ -4,8 +4,15 @@
     "name": "列出未闭环隐患",
     "input": "有哪些待整改的隐患？请列出未闭环的。",
     "expect": {
-      "tools_required": ["list_open_hazards"],
-      "reply_keywords_any": ["HZ-2026-001", "灭火器", "待整改", "重大"],
+      "tools_required": [
+        "list_open_hazards"
+      ],
+      "reply_keywords_any": [
+        "HZ-2026-001",
+        "灭火器",
+        "待整改",
+        "重大"
+      ],
       "must_have_final": true,
       "must_succeed": true
     }
@@ -15,8 +22,13 @@
     "name": "按关键词查台账（灭火器）",
     "input": "查一下灭火器相关隐患",
     "expect": {
-      "tools_required": ["query_hazard_ledger"],
-      "reply_keywords_any": ["HZ-2026-001", "灭火器"],
+      "tools_required": [
+        "query_hazard_ledger"
+      ],
+      "reply_keywords_any": [
+        "HZ-2026-001",
+        "灭火器"
+      ],
       "must_have_final": true,
       "must_succeed": true
     }
@@ -26,8 +38,17 @@
     "name": "按级别查重大隐患",
     "input": "有哪些重大隐患？",
     "expect": {
-      "tools_any": ["query_hazard_ledger", "list_open_hazards"],
-      "reply_keywords_any": ["重大", "HZ-2026-001", "HZ-2026-002", "灭火器", "配电"],
+      "tools_any": [
+        "query_hazard_ledger",
+        "list_open_hazards"
+      ],
+      "reply_keywords_any": [
+        "重大",
+        "HZ-2026-001",
+        "HZ-2026-002",
+        "灭火器",
+        "配电"
+      ],
       "must_have_final": true,
       "must_succeed": true
     }
@@ -37,8 +58,33 @@
     "name": "开整改单（领域+审计）",
     "input": "给 HZ-2026-003 开整改单，措施：补装反光镜并现场复核",
     "expect": {
-      "tools_required": ["create_corrective_ticket"],
-      "reply_keywords_any": ["TK-", "整改单", "HZ-2026-003"],
+      "tools_required": [
+        "create_corrective_ticket"
+      ],
+      "reply_keywords_any": [
+        "TK-",
+        "整改单",
+        "HZ-2026-003"
+      ],
+      "must_have_final": true,
+      "must_succeed": true
+    }
+  },
+  {
+    "id": "search_regulations_fire",
+    "name": "法规 RAG：灭火器制度",
+    "input": "请查制度：灭火器过期未更换应按什么规定处理？",
+    "expect": {
+      "tools_required": [
+        "search_regulations"
+      ],
+      "reply_keywords_any": [
+        "制度",
+        "灭火器",
+        "消防",
+        "规定",
+        "片段"
+      ],
       "must_have_final": true,
       "must_succeed": true
     }

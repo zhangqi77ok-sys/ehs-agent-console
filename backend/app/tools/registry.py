@@ -13,12 +13,14 @@ from app.tools.domain_tools import (
     list_corrective_tickets,
     list_open_hazards,
     query_hazard_ledger,
+    search_regulations,
 )
 
 ToolFn = Callable[..., dict]
 
 
 TOOLS: dict[str, ToolFn] = {
+    "search_regulations": search_regulations,
     "query_hazard_ledger": query_hazard_ledger,
     "list_open_hazards": list_open_hazards,
     "create_corrective_ticket": create_corrective_ticket,
@@ -29,6 +31,18 @@ TOOLS: dict[str, ToolFn] = {
 WRITE_TOOLS = frozenset({"create_corrective_ticket", "advance_corrective_ticket"})
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
+    {
+        "name": "search_regulations",
+        "description": "检索厂区 EHS 制度/法规条文（RAG），按 query 返回相关片段。",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "top_k": {"type": "integer"},
+            },
+            "required": ["query"],
+        },
+    },
     {
         "name": "query_hazard_ledger",
         "description": "查询隐患台账，可按 keyword/status/level/plant 过滤。",

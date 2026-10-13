@@ -38,6 +38,18 @@ def _mock_decide(
         last = tool_results[-1]
         name = last.get("name", "")
         result = last.get("result", {})
+        if name == "search_regulations":
+            hits = (result.get("result") or {}).get("hits") or []
+            if not hits:
+                return {"type": "final", "content": "制度库里没有检索到相关条文，请换个关键词。"}
+            lines = [
+                f"- [{h.get('source')}] (score={h.get('score')}) { (h.get('text') or '')[:160].replace(chr(10), ' ') }"
+                for h in hits
+            ]
+            return {
+                "type": "final",
+                "content": "检索到以下制度片段：\n" + "\n".join(lines),
+            }
         if name == "query_hazard_ledger":
             items = (result.get("result") or {}).get("items") or []
             if not items:
@@ -96,6 +108,16 @@ def _mock_decide(
         return {
             "type": "final",
             "content": f"工具 {name} 已执行，结果：{json.dumps(result, ensure_ascii=False)[:800]}",
+        }
+
+    if any(
+        k in user_message
+        for k in ("制度", "法规", "规定", "条例", "检索制度", "查制度", "制度库", "消防规定", "危化规定")
+    ):
+        return {
+            "type": "tool_call",
+            "name": "search_regulations",
+            "arguments": {"query": user_message.strip(), "top_k": 3},
         }
 
     if any(k in user_message for k in ("有哪些待整改", "待整改的隐患", "未闭环", "开放隐患", "未关闭隐患")):

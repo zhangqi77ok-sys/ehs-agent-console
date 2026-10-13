@@ -161,3 +161,27 @@ def advance_corrective_ticket(
         "ticket": _ticket_dict(ticket),
         "hazard": {"status": hazard.status} if hazard else None,
     }
+
+
+def search_regulations(
+    ctx: ToolContext,
+    query: str = "",
+    top_k: int = 3,
+    **_extra: Any,
+) -> dict[str, Any]:
+    """Retrieve EHS regulation chunks (local embedding RAG). Read-only."""
+    from app.rag.store import get_regulations_store
+
+    q = (query or "").strip()
+    if not q:
+        return {"ok": False, "error": "query 不能为空"}
+    store = get_regulations_store()
+    hits = store.search(q, top_k=int(top_k or 3))
+    return {
+        "ok": True,
+        "result": {
+            "query": q,
+            "hits": hits,
+            "count": len(hits),
+        },
+    }
