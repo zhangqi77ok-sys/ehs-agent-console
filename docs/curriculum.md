@@ -9,7 +9,7 @@
 | Ch3 | SSE 推送 steps/budget；超时可演练 | ✅ | [ch3-sse](./lessons/ch3-sse.md) |
 | Ch4 | Durable run：checkpoint / pause / resume | ✅ | [ch4-durable-run](./lessons/ch4-durable-run.md) |
 | Ch5 | Span Trace + Replay + 写工具 HITL | ✅ | [ch5-trace-hitl](./lessons/ch5-trace-hitl.md) |
-| Ch6 | Mock 确定性 Eval 门禁 + Compose/Postgres | ⏳ | — |
+| Ch6 | Mock 确定性 Eval 门禁 + Compose/Postgres | ✅ | [ch6-eval-compose](./lessons/ch6-eval-compose.md) |
 | Ch7 | 面试追问稿 + 简历项目段 | ⏳ | — |
 
 ## 硬约束
