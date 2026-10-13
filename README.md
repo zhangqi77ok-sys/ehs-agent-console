@@ -18,6 +18,8 @@ Python FastAPI **手写 Agent 循环** + Vite/React（领域台账页 + Agent SS
 
 持久化：默认 SQLite（`DATABASE_URL`），Alembic 迁移见 `backend/alembic/`，课记 [Eng-01](docs/lessons/eng-01-persistence.md)。
 
+测试 / CI：`cd backend && pytest -q`；GitHub Actions [ci](.github/workflows/ci.yml)；课记 [Eng-02](docs/lessons/eng-02-pytest-ci.md)。
+
 ## 运行（PowerShell）
 
 ```powershell

@@ -17,3 +17,4 @@
 ## 工程补强
 
 - [Eng-01 持久化](./eng-01-persistence.md)
+- [Eng-02 pytest + CI](./eng-02-pytest-ci.md)
