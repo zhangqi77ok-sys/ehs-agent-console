@@ -24,3 +24,4 @@
 ## 工业级
 
 - [Ind-01 耐久 Run](./ind-01-durable-run.md)
+- [Ind-02 Trace 回放](./ind-02-trace-replay.md)

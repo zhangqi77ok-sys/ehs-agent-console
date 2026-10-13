@@ -7,6 +7,7 @@ from typing import Any
 from ..agent.loop import run_agent
 from ..config import settings
 from .store import runs
+from .trace import classify_failure, replace_spans_from_steps
 
 
 def _strip_meta(ck: dict[str, Any]) -> dict[str, Any]:
@@ -81,8 +82,15 @@ async def execute_run(
             reply=result.get("reply") or "",
         )
         final = runs.get(run_id) or final
+    steps = result.get("steps") or final.get("steps") or []
+    spans = replace_spans_from_steps(run_id, steps)
+    failure_mode = classify_failure(
+        steps, str(final.get("status") or result.get("status") or ""), str(final.get("error") or "")
+    )
     return {
         **final,
+        "failure_mode": failure_mode,
+        "span_count": len(spans),
         "agent": {
             "reply": result.get("reply"),
             "steps": result.get("steps"),

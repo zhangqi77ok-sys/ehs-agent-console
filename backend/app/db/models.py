@@ -94,3 +94,22 @@ class AgentRun(Base):
     session_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class AgentSpan(Base):
+    """Span-level trace for one agent run (Ind-02)."""
+
+    __tablename__ = "agent_spans"
+
+    span_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(40), ForeignKey("agent_runs.run_id"), index=True)
+    parent_span_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    kind: Mapped[str] = mapped_column(String(16), default="tool", index=True)  # llm | tool | note | run
+    name: Mapped[str] = mapped_column(String(128), default="")
+    status: Mapped[str] = mapped_column(String(16), default="ok")  # ok | error | denied | timeout
+    step_index: Mapped[int] = mapped_column(Integer, default=0)
+    duration_ms: Mapped[int] = mapped_column(Integer, default=0)
+    attrs_json: Mapped[str] = mapped_column(Text, default="{}")
+    input_json: Mapped[str] = mapped_column(Text, default="{}")
+    output_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
