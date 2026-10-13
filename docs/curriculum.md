@@ -5,7 +5,7 @@
 | 章 | 主题 | 状态 | 课记 |
 |----|------|------|------|
 | Ch1 | 领域台账（隐患 + CAPA + ACL + 审计 + UI） | ✅ | [ch1-domain](./lessons/ch1-domain.md) |
-| Ch2 | 手写 Agent 循环；工具只调本仓领域 API；可点 Agent UI | ⏳ | — |
+| Ch2 | 手写 Agent 循环；工具只调本仓领域 API；可点 Agent UI | ✅ | [ch2-agent-loop](./lessons/ch2-agent-loop.md) |
 | Ch3 | SSE 推送 steps/budget；超时可演练 | ⏳ | — |
 | Ch4 | Durable run：checkpoint / pause / resume | ⏳ | — |
 | Ch5 | Span Trace + Replay + 写工具 HITL | ⏳ | — |

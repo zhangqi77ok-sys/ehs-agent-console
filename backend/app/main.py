@@ -6,6 +6,7 @@ from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.agent import router as agent_router
 from app.api.audit import router as audit_router
 from app.api.domain import router as domain_router
 from app.api.health import router as health_router
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(domain_router)
     app.include_router(audit_router)
+    app.include_router(agent_router)
     return app
 
 
