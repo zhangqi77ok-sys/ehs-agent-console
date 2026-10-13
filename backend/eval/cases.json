@@ -14,7 +14,13 @@
         "重大"
       ],
       "must_have_final": true,
-      "must_succeed": true
+      "must_succeed": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms_max": 15000,
+        "policy_deny_expected": false
+      }
     }
   },
   {
@@ -30,7 +36,13 @@
         "灭火器"
       ],
       "must_have_final": true,
-      "must_succeed": true
+      "must_succeed": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms_max": 15000,
+        "policy_deny_expected": false
+      }
     }
   },
   {
@@ -50,7 +62,13 @@
         "配电"
       ],
       "must_have_final": true,
-      "must_succeed": true
+      "must_succeed": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms_max": 15000,
+        "policy_deny_expected": false
+      }
     }
   },
   {
@@ -67,7 +85,13 @@
         "HZ-2026-003"
       ],
       "must_have_final": true,
-      "must_succeed": true
+      "must_succeed": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms_max": 20000,
+        "policy_deny_expected": false
+      }
     }
   },
   {
@@ -86,7 +110,32 @@
         "片段"
       ],
       "must_have_final": true,
-      "must_succeed": true
+      "must_succeed": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms_max": 15000,
+        "policy_deny_expected": false
+      }
+    }
+  },
+  {
+    "id": "viewer_write_denied",
+    "name": "策略：viewer 写操作应被拒",
+    "input": "给 HZ-2026-003 开整改单，措施：测试拒绝",
+    "role": "viewer",
+    "expect": {
+      "tools_required": [
+        "create_corrective_ticket"
+      ],
+      "must_have_final": true,
+      "must_succeed": false,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": false,
+        "latency_ms_max": 15000,
+        "policy_deny_expected": true
+      }
     }
   }
 ]

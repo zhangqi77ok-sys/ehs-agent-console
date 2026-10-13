@@ -1,0 +1,170 @@
+[
+  {
+    "id": "q1",
+    "section": "领域与 ACL",
+    "question": "为什么领域优先于 Agent？",
+    "rubric_points": [
+      "Ch1 DoD",
+      "规格路径",
+      "假闭环风险"
+    ],
+    "hint_path": "docs/superpowers/specs/2026-10-13-ehs-domain-ch1-design.md"
+  },
+  {
+    "id": "q2",
+    "section": "领域与 ACL",
+    "question": "关闭整改单为何强制证据？",
+    "rubric_points": [
+      "capa.py",
+      "evidence_note",
+      "审计拒绝"
+    ],
+    "hint_path": "backend/app/domain/capa.py"
+  },
+  {
+    "id": "q3",
+    "section": "领域与 ACL",
+    "question": "viewer 写会被怎样处理？",
+    "rubric_points": [
+      "403",
+      "ticket.denied",
+      "tools _deny_write"
+    ],
+    "hint_path": "backend/app/tools/domain_tools.py"
+  },
+  {
+    "id": "q4",
+    "section": "Runtime",
+    "question": "手写循环步骤是什么？",
+    "rubric_points": [
+      "observe",
+      "decide",
+      "act",
+      "loop.py"
+    ],
+    "hint_path": "backend/app/agent/loop.py"
+  },
+  {
+    "id": "q5",
+    "section": "Runtime",
+    "question": "工具如何保证不旁路领域层？",
+    "rubric_points": [
+      "domain_tools",
+      "repo.*",
+      "不拼 SQL"
+    ],
+    "hint_path": "backend/app/tools/domain_tools.py"
+  },
+  {
+    "id": "q6",
+    "section": "HITL",
+    "question": "HITL 闸门卡在哪一层？",
+    "rubric_points": [
+      "写工具集合",
+      "approvals",
+      "awaiting_approval"
+    ],
+    "hint_path": "backend/app/runs/approvals.py"
+  },
+  {
+    "id": "q7",
+    "section": "可观测",
+    "question": "Trace 和 access log 差别？",
+    "rubric_points": [
+      "spans",
+      "request_id",
+      "排障 vs 运维"
+    ],
+    "hint_path": "backend/app/runs/trace.py"
+  },
+  {
+    "id": "q8",
+    "section": "可观测",
+    "question": "如何讲 tracing vs logging？",
+    "rubric_points": [
+      "span 树",
+      "failure_mode",
+      "/api/obs/summary"
+    ],
+    "hint_path": "docs/lessons/ch13-observability.md"
+  },
+  {
+    "id": "q9",
+    "section": "RAG",
+    "question": "sqlite 与 postgres RAG 怎么切换？",
+    "rubric_points": [
+      "DATABASE_URL",
+      "regulation_chunks",
+      "内存索引"
+    ],
+    "hint_path": "docs/lessons/ch14-pgvector.md"
+  },
+  {
+    "id": "q10",
+    "section": "MCP",
+    "question": "JD 写 MCP，本仓做到哪？",
+    "rubric_points": [
+      "schema+invoke",
+      "非完整 SSE",
+      "/api/mcp/tools"
+    ],
+    "hint_path": "docs/lessons/ch15-mcp-adapter.md"
+  },
+  {
+    "id": "q11",
+    "section": "Eval",
+    "question": "多维 Eval 有哪些维度？",
+    "rubric_points": [
+      "tool_correct",
+      "reply_quality",
+      "latency",
+      "policy_deny"
+    ],
+    "hint_path": "docs/lessons/ch16-eval-dims.md"
+  },
+  {
+    "id": "q12",
+    "section": "Multi-Agent",
+    "question": "Supervisor 如何派发？",
+    "rubric_points": [
+      "Investigator",
+      "Clerk",
+      "allowlist",
+      "双时间线"
+    ],
+    "hint_path": "backend/app/agent/supervisor.py"
+  },
+  {
+    "id": "q13",
+    "section": "Auth",
+    "question": "JWT / API Key / 演示头优先级？",
+    "rubric_points": [
+      "Bearer",
+      "X-API-Key",
+      "X-Tenant-Id"
+    ],
+    "hint_path": "backend/app/auth/deps.py"
+  },
+  {
+    "id": "q14",
+    "section": "Memory",
+    "question": "长对话如何压缩？",
+    "rubric_points": [
+      "memory_max_chars",
+      "keep_recent",
+      "summary"
+    ],
+    "hint_path": "backend/app/memory/compress.py"
+  },
+  {
+    "id": "q15",
+    "section": "就业",
+    "question": "仓库能保证 offer 吗？",
+    "rubric_points": [
+      "不能保证",
+      "可演示",
+      "口语变量"
+    ],
+    "hint_path": "docs/jd-gap-matrix.md"
+  }
+]

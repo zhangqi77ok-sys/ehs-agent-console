@@ -135,3 +135,17 @@ class AgentSession(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class RegulationChunk(Base):
+    """Persisted RAG chunk (Ch14). embedding_json works on sqlite+postgres; vector col optional."""
+
+    __tablename__ = "regulation_chunks"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    source: Mapped[str] = mapped_column(String(256), nullable=False, default="")
+    text: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    embedding_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    dim: Mapped[int] = mapped_column(Integer, nullable=False, default=256)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+

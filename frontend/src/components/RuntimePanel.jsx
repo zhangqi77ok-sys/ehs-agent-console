@@ -21,6 +21,7 @@ export default function RuntimePanel({ tenantId, role }) {
   const [selected, setSelected] = useState(null);
   const [trace, setTrace] = useState(null);
   const [approvals, setApprovals] = useState([]);
+  const [obs, setObs] = useState(null);
   const [message, setMessage] = useState("查询灭火器隐患");
   const [pauseAfter, setPauseAfter] = useState("1");
   const [error, setError] = useState("");
@@ -36,6 +37,10 @@ export default function RuntimePanel({ tenantId, role }) {
         headers: headers(tenantId, role),
       });
       setApprovals(ap.items || []);
+      const summary = await jfetch("/api/obs/summary", {
+        headers: headers(tenantId, role),
+      });
+      setObs(summary);
     } catch (e) {
       setError(e.message);
     }
@@ -100,6 +105,27 @@ export default function RuntimePanel({ tenantId, role }) {
     }
   };
 
+  const exportSpans = async (runId) => {
+    try {
+      const res = await fetch(`/api/runs/${runId}/spans/export`, {
+        headers: headers(tenantId, role),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || res.statusText);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `spans-${runId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   const decide = async (approvalId, approve) => {
     setBusy(true);
     setError("");
@@ -119,6 +145,25 @@ export default function RuntimePanel({ tenantId, role }) {
 
   return (
     <div className="panel">
+      <div className="card" style={{ marginBottom: 12 }}>
+        <h2>可观测摘要（Ch13）</h2>
+        {obs ? (
+          <div className="row gap" style={{ flexWrap: "wrap" }}>
+            <span className="tag">runs {obs.run_count}</span>
+            <span className="tag">HITL pending {obs.hitl_pending}</span>
+            <span className="tag">deny rate {obs.tool_deny_rate}</span>
+            <span className="tag">avg steps {obs.avg_steps}</span>
+            {obs.failure_modes &&
+              Object.entries(obs.failure_modes).map(([k, v]) => (
+                <span key={k} className="tag warn-tag">
+                  {k}:{v}
+                </span>
+              ))}
+          </div>
+        ) : (
+          <p className="muted small">加载中…</p>
+        )}
+      </div>
       <div className="agent-grid">
         <div className="card">
           <h2>Durable Runs</h2>
@@ -180,7 +225,22 @@ export default function RuntimePanel({ tenantId, role }) {
               <p className="small">
                 <strong>{selected.status}</strong> · budget {selected.budget_used}/
                 {selected.budget_max}
+                {trace?.failure_mode && (
+                  <>
+                    {" "}
+                    · failure_mode <span className="tag">{trace.failure_mode}</span>
+                  </>
+                )}
               </p>
+              <div className="row gap" style={{ marginBottom: 8 }}>
+                <button
+                  className="ghost"
+                  type="button"
+                  onClick={() => exportSpans(selected.run_id)}
+                >
+                  导出 Spans JSON
+                </button>
+              </div>
               <pre className="reply-box">{selected.reply || "(无 reply)"}</pre>
               <h3>Steps</h3>
               <ol className="steps-list">
@@ -195,7 +255,10 @@ export default function RuntimePanel({ tenantId, role }) {
           )}
           {trace && (
             <>
-              <h3>Spans ({trace.span_count}) · {trace.failure_mode}</h3>
+              <h3>
+                Spans ({trace.span_count}) · failure_mode={" "}
+                <span className="tag">{trace.failure_mode}</span>
+              </h3>
               <ol className="steps-list">
                 {(trace.spans || []).map((sp) => (
                   <li key={sp.span_id}>

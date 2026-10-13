@@ -97,3 +97,12 @@ A：`docs/jd-gap-matrix.md`、`oral-15min.md`、`mock-interview.md`、`failure-m
 ## H. 把握与风险（诚实）
 
 仓库不能保证 offer。冲刺 20–30k 时：本仓把高频技术追问落到代码与 Demo；剩余风险是**口语流畅度、真 LLM 临场、公司业务匹配、学历/年限门槛**。用 `mock-interview.md` 闭卷练到不看稿。
+
+
+## Ch13–17 追问速记
+
+- **Tracing vs Logging**：access log = 请求级；spans = Agent 步级；`failure_mode` 分类见 `runs/trace.py`。
+- **pgvector**：Compose 用 pgvector 镜像；sqlite 仍内存索引；切 `DATABASE_URL`。
+- **MCP**：`/api/mcp/tools` + `/call` 薄层，不是完整 SSE 协议。
+- **多维 Eval**：tool_correct / reply_quality / latency / policy_deny。
+- **Practice**：三档自评；**不能保证 offer**。

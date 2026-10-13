@@ -14,16 +14,18 @@
 - SSE：steps/budget 推送  
 - Durable：`agent_runs.checkpoint_json` pause/resume  
 - HITL：写工具集合闸门 → approvals  
-- Trace：steps→spans，replay 不重放副作用  
-- Eval：`eval/cases.json` + mock 进 pytest  
+- Trace：steps→spans，replay 不重放副作用；**failure_mode + spans 导出**（Ch13）  
+- Eval：`eval/cases.json` 四维门禁（工具/回复/延迟/策略拒绝）  
 
 ## 11–14′ 就业补强章
 
 - Ch8 JWT/API Key + request_id JSON 日志  
-- Ch9 法规 RAG（切块+hash embed+score）  
+- Ch9–14 法规 RAG：内存索引 ↔ Postgres/`regulation_chunks`（pgvector 镜像可选）  
 - Ch10 session 记忆压缩  
 - Ch11 Supervisor 双角色时间线 + allowlist  
+- Ch15 MCP 风格 **schema+invoke 薄层**（主动说不是完整 SSE 协议）  
+- Ch17 Practice 页三档自评  
 
 ## 14–15′ 主动暴露差距
 
-没有 OIDC/JWKS、没有生产向量库与 OTel、Multi-Agent 是顺序路由不是图编排、真 LLM 评测未进 CI。我能讲清「已做到 / 刻意没做 / 上线怎么补」。
+没有 OIDC/JWKS、没有 OTel OTLP、MCP 非传输完备、Multi-Agent 是顺序路由不是图编排、真 LLM 评测未进 CI。我能讲清「已做到 / 刻意没做 / 上线怎么补」。**仓库不能保证 offer**，但技术追问可以指代码。

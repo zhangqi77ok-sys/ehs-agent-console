@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import DomainPanel from "./components/DomainPanel.jsx";
 import AgentPanel from "./components/AgentPanel.jsx";
 import RuntimePanel from "./components/RuntimePanel.jsx";
+import PracticePanel from "./components/PracticePanel.jsx";
 
 const TENANTS = ["demo-plant", "other-plant"];
 const ROLES = [
@@ -14,6 +15,7 @@ const TABS = [
   { id: "domain", label: "Domain 台账" },
   { id: "agent", label: "Agent" },
   { id: "runtime", label: "Runtime" },
+  { id: "practice", label: "Practice" },
 ];
 
 export default function App() {
@@ -66,6 +68,7 @@ export default function App() {
       {tab === "domain" && <DomainPanel tenantId={tenantId} role={role} />}
       {tab === "agent" && <AgentPanel tenantId={tenantId} role={role} />}
       {tab === "runtime" && <RuntimePanel tenantId={tenantId} role={role} />}
+      {tab === "practice" && <PracticePanel />}
     </div>
   );
 }

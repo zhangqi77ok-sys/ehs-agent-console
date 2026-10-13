@@ -244,3 +244,8 @@ button.link { background: transparent; color: var(--accent); padding: 0; }
 @media (max-width: 900px) {
   .timeline-grid { grid-template-columns: 1fr; }
 }
+
+.practice-list { max-height: 70vh; }
+.practice-item { cursor: default; }
+.practice-item .title { font-size: 1rem; }
+.warn-tag { background: #fff7ed; color: #c2410c; }

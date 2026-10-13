@@ -12,6 +12,9 @@ from app.api.runs import router as runs_router
 from app.api.audit import router as audit_router
 from app.api.domain import router as domain_router
 from app.api.health import router as health_router
+from app.api.obs import router as obs_router
+from app.api.mcp import router as mcp_router
+from app.api.eval_api import router as eval_router
 from app.config import settings
 from app.middleware.observability import RequestIdAccessLogMiddleware
 from app.db.seed import seed_if_empty
@@ -53,6 +56,9 @@ def create_app() -> FastAPI:
     app.include_router(audit_router)
     app.include_router(agent_router)
     app.include_router(runs_router)
+    app.include_router(obs_router)
+    app.include_router(mcp_router)
+    app.include_router(eval_router)
     return app
 
 

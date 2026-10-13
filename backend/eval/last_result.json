@@ -1,0 +1,91 @@
+{
+  "ts": "2026-10-13T10:19:35.643628+00:00",
+  "passed": 6,
+  "failed": 0,
+  "cases": [
+    {
+      "id": "list_open_hazards",
+      "name": "列出未闭环隐患",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 1.7,
+        "latency_ms_max": 15000.0
+      },
+      "reasons": []
+    },
+    {
+      "id": "query_extinguisher",
+      "name": "按关键词查台账（灭火器）",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 1.6,
+        "latency_ms_max": 15000.0
+      },
+      "reasons": []
+    },
+    {
+      "id": "query_major",
+      "name": "按级别查重大隐患",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 1.3,
+        "latency_ms_max": 15000.0
+      },
+      "reasons": []
+    },
+    {
+      "id": "create_ticket",
+      "name": "开整改单（领域+审计）",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 5.9,
+        "latency_ms_max": 20000.0
+      },
+      "reasons": []
+    },
+    {
+      "id": "search_regulations_fire",
+      "name": "法规 RAG：灭火器制度",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 0.5,
+        "latency_ms_max": 15000.0
+      },
+      "reasons": []
+    },
+    {
+      "id": "viewer_write_denied",
+      "name": "策略：viewer 写操作应被拒",
+      "ok": true,
+      "dimensions": {
+        "tool_correct": true,
+        "reply_quality": true,
+        "latency_ms": true,
+        "policy_deny": true,
+        "latency_ms_value": 0.7,
+        "latency_ms_max": 15000.0
+      },
+      "reasons": []
+    }
+  ]
+}

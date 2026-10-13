@@ -1,10 +1,10 @@
-# EHS Agent Console — local stack (Ch6)
+# EHS Agent Console — local stack (Ch6 + Ch14 pgvector image)
 # Usage: cp .env.example .env && docker compose up -d --build
 # Web: http://127.0.0.1:5173  API: http://127.0.0.1:8000/health
 
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-ehs}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ehs_change_me}
