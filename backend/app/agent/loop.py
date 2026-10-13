@@ -6,22 +6,46 @@ import asyncio
 from typing import Any, AsyncIterator
 from uuid import uuid4
 
+from ..auth.tenant import assert_tool_allowed, resolve_identity
 from ..config import settings
-from ..tools.registry import TOOL_SCHEMAS, run_tool_async
+from ..tools.registry import TOOL_SCHEMAS, schemas_for_tools, run_tool_async
 from . import llm
 from .llm import LLMCallError, LLMConfigError
+
+
+def _filter_schemas(allowed: set[str] | list[str]) -> list[dict[str, Any]]:
+    allow = set(allowed)
+    return schemas_for_tools(allow)
+
+
+def _inject_tenant_args(name: str, args: dict[str, Any], identity: dict[str, Any]) -> dict[str, Any]:
+    out = dict(args or {})
+    plant = identity.get("plant_filter")
+    if plant and name in {"query_hazard_ledger", "list_open_hazards"}:
+        # Soft scope: force plant filter for ledger queries when tenant is plant-scoped.
+        if name == "query_hazard_ledger" and not out.get("plant"):
+            out["plant"] = plant
+    return out
 
 
 async def run_agent(
     message: str,
     history: list[dict] | None = None,
     force_timeout: bool = False,
+    tenant_id: str = "default",
+    role: str = "ehs_engineer",
 ) -> dict[str, Any]:
-    """Run to completion; returns final payload with steps for the UI."""
     steps: list[dict[str, Any]] = []
     reply = ""
     budget: dict[str, Any] = {"used": 0, "max": settings.max_agent_steps, "unit": "steps"}
-    async for evt in stream_agent(message, history, force_timeout=force_timeout):
+    identity: dict[str, Any] = {}
+    async for evt in stream_agent(
+        message,
+        history,
+        force_timeout=force_timeout,
+        tenant_id=tenant_id,
+        role=role,
+    ):
         name = evt["event"]
         data = evt["data"]
         if name in ("tool_call", "tool_result", "final", "note"):
@@ -30,30 +54,41 @@ async def run_agent(
             reply = data.get("content") or ""
         if name == "budget":
             budget = data
+        if name == "identity":
+            identity = data
         if name == "error":
             reply = data.get("detail") or reply
         if name == "done":
             reply = data.get("reply") or reply
             budget = data.get("budget") or budget
             steps = data.get("steps") or steps
-    return {"reply": reply, "steps": steps, "budget": budget}
+            identity = data.get("identity") or identity
+    return {"reply": reply, "steps": steps, "budget": budget, "identity": identity}
 
 
 async def stream_agent(
     message: str,
     history: list[dict] | None = None,
     force_timeout: bool = False,
+    tenant_id: str = "default",
+    role: str = "ehs_engineer",
 ) -> AsyncIterator[dict[str, Any]]:
-    """Yield SSE events live as the agent runs (not after the full run).
+    """Yield SSE events live as the agent runs.
 
-    force_timeout: per-request teaching drill — tiny LLM HTTP timeout for this turn only.
+    force_timeout: teaching drill — tiny LLM HTTP timeout for this turn only.
+    tenant_id / role: Chapter 8 identity for tool allowlist + plant scope.
     """
+    identity = resolve_identity(tenant_id, role)
+    allowed = set(identity["allowed_tools"])
+    schemas = _filter_schemas(allowed)
+
     steps: list[dict[str, Any]] = []
     tool_results: list[dict[str, Any]] = []
     hist = list(history or [])
     budget_used = 0
     budget_max = settings.max_agent_steps
 
+    yield {"event": "identity", "data": identity}
     yield {
         "event": "budget",
         "data": {"used": 0, "max": budget_max, "unit": "steps"},
@@ -99,13 +134,12 @@ async def stream_agent(
                 message,
                 hist,
                 tool_results,
-                TOOL_SCHEMAS,
+                schemas,
                 on_retry=on_retry,
                 force_timeout=force_timeout,
             )
         )
 
-        # Drain retry notes while the LLM call (and its backoff sleeps) is in flight.
         while not decision_task.done():
             try:
                 note = await asyncio.wait_for(note_q.get(), timeout=0.15)
@@ -138,12 +172,12 @@ async def stream_agent(
                     "reply": fail_step["content"],
                     "steps": steps,
                     "budget": {"used": budget_used, "max": budget_max, "unit": "steps"},
+                    "identity": identity,
                     "ok": False,
                 },
             }
             return
         except Exception:
-            # Unexpected — re-raise so main.py can emit a generic error event.
             raise
 
         if decision["type"] == "final":
@@ -158,14 +192,16 @@ async def stream_agent(
                 "reply": decision["content"],
                 "steps": steps,
                 "budget": {"used": budget_used, "max": budget_max, "unit": "steps"},
+                "identity": identity,
             }
             yield {"event": "done", "data": payload}
             return
 
         name = decision["name"]
-        args = decision.get("arguments") or {}
+        args = _inject_tenant_args(name, decision.get("arguments") or {}, identity)
         call_id = decision.get("call_id") or f"call_{uuid4().hex[:8]}"
 
+        ok_tool, deny_reason = assert_tool_allowed(identity["role"], name)
         call_step = {
             "index": budget_used,
             "kind": "tool_call",
@@ -175,7 +211,35 @@ async def stream_agent(
         steps.append(call_step)
         yield {"event": "tool_call", "data": call_step}
 
-        result = await run_tool_async(name, args)
+        if not ok_tool:
+            result = {"ok": False, "error": deny_reason, "denied": True}
+        else:
+            result = await run_tool_async(name, args)
+
+        # Extra plant scope filter on list results for plant tenants
+        plant = identity.get("plant_filter")
+        if (
+            plant
+            and result.get("ok")
+            and isinstance(result.get("result"), dict)
+            and "items" in result["result"]
+            and name in {"list_open_hazards", "query_hazard_ledger"}
+        ):
+            items = [
+                it
+                for it in result["result"]["items"]
+                if plant in str(it.get("plant") or "")
+            ]
+            result = {
+                **result,
+                "result": {
+                    **result["result"],
+                    "items": items,
+                    "count": len(items),
+                    "tenant_plant_filter": plant,
+                },
+            }
+
         result_step = {
             "index": budget_used,
             "kind": "tool_result",
@@ -201,5 +265,6 @@ async def stream_agent(
             "reply": fallback,
             "steps": steps,
             "budget": {"used": budget_used, "max": budget_max, "unit": "steps"},
+            "identity": identity,
         },
     }

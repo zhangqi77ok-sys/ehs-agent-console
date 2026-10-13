@@ -1,9 +1,16 @@
 const BASE = "";
 
-async function json(path, options) {
+function headers(identity = {}) {
+  const h = { "Content-Type": "application/json" };
+  if (identity.tenant_id) h["X-Tenant-Id"] = identity.tenant_id;
+  if (identity.role) h["X-Role"] = identity.role;
+  return h;
+}
+
+async function json(path, options = {}, identity = {}) {
   const res = await fetch(`${BASE}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
     ...options,
+    headers: { ...headers(identity), ...(options.headers || {}) },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -13,20 +20,29 @@ async function json(path, options) {
   return data;
 }
 
-export function fetchSummary() {
-  return json("/api/domain/summary");
+export function fetchAuthMeta() {
+  return json("/api/auth/meta");
 }
 
-export function createTicket({ hazard_id, measures, owner, due_days }) {
-  return json("/api/tickets", {
-    method: "POST",
-    body: JSON.stringify({ hazard_id, measures, owner, due_days }),
-  });
+export function fetchSummary(identity) {
+  return json("/api/domain/summary", {}, identity);
 }
 
-export function advanceTicket(ticket_id, { action, evidence_note }) {
-  return json(`/api/tickets/${encodeURIComponent(ticket_id)}/advance`, {
+export function createTicket(payload, identity) {
+  return json("/api/tickets", { method: "POST", body: JSON.stringify(payload) }, identity);
+}
+
+export function advanceTicket(ticket_id, payload, identity) {
+  return json(
+    `/api/tickets/${encodeURIComponent(ticket_id)}/advance`,
+    { method: "POST", body: JSON.stringify(payload) },
+    identity
+  );
+}
+
+export function createSession({ tenant_id, role }) {
+  return json("/api/sessions", {
     method: "POST",
-    body: JSON.stringify({ action, evidence_note }),
+    body: JSON.stringify({ tenant_id, role }),
   });
 }

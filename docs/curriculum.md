@@ -1,18 +1,17 @@
-# 课纲（v2 · 推倒重写）
+# 课纲（v2）
 
-> 旧 Week1/Week2 流水账课记已归档到 [`docs/lessons/_archive/v1/`](./lessons/_archive/v1/)。  
-> **新标准**：每章必须同时满足 —— 真业务可演示 · 行为可观测 · 有门禁/验收 · 中文课记可跟练。
+旧课记在 [`docs/lessons/_archive/v1/`](./lessons/_archive/v1/)。
 
-| 章 | 主题 | 状态 |
-|----|------|------|
-| 1 | 领域底座：隐患台账 + 整改单状态机 + REST + 素控制台 | ✅ 进行中（本仓库当前焦点） |
-| 2 | 手写 Agent 循环 + 工具调用（真 LLM） | 未开始 |
-| 3 | SSE 左聊右步骤 | 未开始 |
-| 4 | 超时 / 重试 / 预算熔断 | 未开始 |
-| 5 | 评测门禁 | 未开始 |
-| 6 | 法规向量 RAG | 未开始 |
-| 7 | 多轮会话一致性 | 未开始 |
-| 8 | 权限 / 多租户雏形 | 未开始 |
-| 9 | 面试讲法与 Demo 剧本 | 未开始 |
+| 章 | 主题 | 课记 | 状态 |
+|----|------|------|------|
+| 1 | 领域底座 | [01-domain](./lessons/01-domain.md) | ✅ |
+| 2 | 手写 Agent 循环 | [02-agent-loop](./lessons/02-agent-loop.md) | ✅ |
+| 3 | SSE 可视化 | [03-sse](./lessons/03-sse.md) | ✅ |
+| 4 | 超时/重试/预算 | [04-reliability](./lessons/04-reliability.md) | ✅ |
+| 5 | 评测门禁 | [05-eval](./lessons/05-eval.md) | ✅ |
+| 6 | 向量 RAG | [06-rag](./lessons/06-rag.md) | ✅ |
+| 7 | 多轮会话 | [07-session](./lessons/07-session.md) | ✅ |
+| 8 | 租户/角色 | [08-tenant](./lessons/08-tenant.md) | ✅ |
+| 9 | 面试讲法 | [09-interview](./lessons/09-interview.md) → [interview.md](./interview.md) | ✅ |
 
-约定：做完一章再开下一章；禁止再堆「看起来完整、实际仍薄」的假进度。
+标准：真业务可演示 · 可观测 · 有门禁 · 中文课记。

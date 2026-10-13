@@ -123,6 +123,13 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
 ]
 
 
+
+def schemas_for_tools(allowed: set[str] | None = None) -> list[dict[str, Any]]:
+    if not allowed:
+        return list(TOOL_SCHEMAS)
+    return [s for s in TOOL_SCHEMAS if s["name"] in allowed]
+
+
 def run_tool(name: str, arguments: dict[str, Any] | None = None) -> dict[str, Any]:
     if name not in TOOLS:
         return {"ok": False, "error": f"未知工具: {name}"}

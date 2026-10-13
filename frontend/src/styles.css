@@ -54,3 +54,34 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   padding: 0.65rem 0.85rem; border-radius: 8px; margin-bottom: 1rem;
 }
 code { font-size: 0.85em; }
+
+.shell { min-height: 100vh; }
+.topbar {
+  display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+  justify-content: space-between; padding: 0.75rem 1.25rem;
+  background: #0f172a; color: #e2e8f0;
+}
+.brand { display: flex; gap: 0.6rem; align-items: baseline; }
+.brand .muted { color: #94a3b8; font-size: 0.85rem; }
+.tabs { display: flex; gap: 0.35rem; }
+.tab {
+  background: transparent; color: #cbd5e1; border: 1px solid #334155;
+  padding: 0.35rem 0.75rem;
+}
+.tab.on { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.identity { display: flex; gap: 0.6rem; align-items: end; flex-wrap: wrap; }
+.identity label {
+  display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.75rem; color: #94a3b8;
+}
+.identity select { min-width: 9rem; }
+.chip {
+  font-size: 0.75rem; background: #1e293b; border: 1px solid #334155;
+  padding: 0.25rem 0.5rem; border-radius: 999px;
+}
+.agent-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  min-height: calc(100vh - 64px);
+}
+@media (max-width: 960px) {
+  .agent-layout { grid-template-columns: 1fr; }
+}
