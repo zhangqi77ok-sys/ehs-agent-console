@@ -72,3 +72,25 @@ class ChatMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     session: Mapped[ChatSession] = relationship(back_populates="messages")
+
+
+class AgentRun(Base):
+    """Durable agent execution with checkpoint for crash/resume (Ind-01)."""
+
+    __tablename__ = "agent_runs"
+
+    run_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), default="default", index=True)
+    role: Mapped[str] = mapped_column(String(64), default="ehs_engineer")
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    # pending | running | paused | completed | failed
+    message: Mapped[str] = mapped_column(Text, default="")
+    reply: Mapped[str] = mapped_column(Text, default="")
+    error: Mapped[str] = mapped_column(Text, default="")
+    checkpoint_json: Mapped[str] = mapped_column(Text, default="{}")
+    steps_json: Mapped[str] = mapped_column(Text, default="[]")
+    budget_used: Mapped[int] = mapped_column(Integer, default=0)
+    budget_max: Mapped[int] = mapped_column(Integer, default=8)
+    session_id: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

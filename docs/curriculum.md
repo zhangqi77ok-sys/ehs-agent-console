@@ -24,3 +24,7 @@
 | Eng-02 | [pytest + CI](./lessons/eng-02-pytest-ci.md) | ✅ |
 | Eng-03 | [可观测+权限](./lessons/eng-03-obs-auth.md) | ✅ |
 | Eng-04 | [简历表述](./lessons/eng-04-resume.md) → [resume-project.md](./resume-project.md) | ✅ |
+
+## 工业级进阶（找工作主线）
+
+见 **[curriculum-industry.md](./curriculum-industry.md)**。Eng 只是地基；Ind 才对标 20–30K 追问。

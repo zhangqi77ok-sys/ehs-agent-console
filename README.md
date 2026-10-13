@@ -3,6 +3,8 @@
 Python FastAPI **手写 Agent 循环** + Vite/React（领域台账页 + Agent SSE 页）。  
 课纲 1–9 章已按新标准落地，详见 [`docs/curriculum.md`](docs/curriculum.md)。
 
+工业级进阶（找工作主线）：[`docs/curriculum-industry.md`](docs/curriculum-industry.md)。
+
 ## 能力一览
 
 | 章 | 能力 |

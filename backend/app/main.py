@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from .agent.llm import LLMCallError, LLMConfigError
 from .agent.loop import run_agent, stream_agent
 from .api.domain import router as domain_router
+from .api.runs import router as runs_router
 from .auth.deps import get_current_identity
 from .auth.routes import router as auth_router
 from .config import settings
@@ -35,8 +36,8 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="EHS Agent Console",
-    version="2.2.0",
-    description="v2 + eng-1 persist + eng-2 pytest + eng-3 obs/auth",
+    version="2.3.0",
+    description="v2 + eng-1 persist + eng-2 pytest + eng-3 obs/auth + ind-01 durable runs",
     lifespan=lifespan,
 )
 
@@ -52,6 +53,7 @@ app.add_middleware(
 
 app.include_router(domain_router)
 app.include_router(auth_router)
+app.include_router(runs_router)
 
 
 class ChatRequest(BaseModel):
@@ -91,6 +93,7 @@ def health() -> dict[str, Any]:
         "persistence": "sqlalchemy",
         "auth_mode": settings.auth_mode,
         "observability": "request_id+json_access_log",
+        "durable_runs": True,
         "hazard_count": hazards["count"],
         "ticket_count": tickets["count"],
         "as_of": hazards.get("as_of"),
