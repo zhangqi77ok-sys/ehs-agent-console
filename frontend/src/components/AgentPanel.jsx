@@ -12,6 +12,8 @@ export default function AgentPanel({ tenantId, role }) {
   const [useSse, setUseSse] = useState(true);
   const [forceTimeout, setForceTimeout] = useState(false);
   const [pauseAfter, setPauseAfter] = useState("");
+  const [multiAgent, setMultiAgent] = useState(true);
+  const [route, setRoute] = useState("");
   const bottomRef = useRef(null);
 
   const send = async () => {
@@ -24,6 +26,7 @@ export default function AgentPanel({ tenantId, role }) {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
     setSteps([]);
+    setRoute("");
 
     const pauseAfterSteps = pauseAfter ? Number(pauseAfter) : null;
 
@@ -37,7 +40,9 @@ export default function AgentPanel({ tenantId, role }) {
           history,
           forceTimeout,
           pauseAfterSteps,
+          multiAgent,
           onEvent: (name, data) => {
+            if (name === "supervisor") setRoute(data.route || "");
             if (name === "budget") setBudget(data);
             if (["tool_call", "tool_result", "final", "note"].includes(name)) {
               live.push(data);
@@ -54,6 +59,7 @@ export default function AgentPanel({ tenantId, role }) {
         setSteps(done?.steps || live);
         setBudget(done?.budget || null);
         setStatus(done?.status || "completed");
+        setRoute(done?.supervisor?.route || route);
       } else {
         const res = await agentChat({
           tenantId,
@@ -62,7 +68,9 @@ export default function AgentPanel({ tenantId, role }) {
           history,
           forceTimeout,
           pauseAfterSteps,
+          multiAgent,
         });
+        setRoute(res.supervisor?.route || "");
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: res.reply || "(无回复)" },
@@ -85,7 +93,7 @@ export default function AgentPanel({ tenantId, role }) {
       <div className="agent-grid">
         <div className="card chat-card">
           <div className="row between">
-            <h2>Agent 对话</h2>
+            <h2>Agent 对话 {route ? <span className="pill">→ {route}</span> : null}</h2>
             <div className="row gap">
               <label className="muted small">
                 <input
@@ -94,6 +102,14 @@ export default function AgentPanel({ tenantId, role }) {
                   onChange={(e) => setUseSse(e.target.checked)}
                 />{" "}
                 SSE
+              </label>
+              <label className="muted small">
+                <input
+                  type="checkbox"
+                  checked={multiAgent}
+                  onChange={(e) => setMultiAgent(e.target.checked)}
+                />{" "}
+                多 Agent
               </label>
               <label className="muted small">
                 <input
@@ -161,7 +177,7 @@ export default function AgentPanel({ tenantId, role }) {
           <ol className="steps-list">
             {steps.map((s, i) => (
               <li key={i}>
-                <span className="tag">{s.kind || s.note || "?"}</span>{" "}
+                <span className="tag">{s.kind || s.note || "?"}{s.agent ? ` · ${s.agent}` : ""}</span>{" "}
                 {s.kind === "tool_call" && (
                   <code>
                     {s.name}({JSON.stringify(s.arguments || {})})

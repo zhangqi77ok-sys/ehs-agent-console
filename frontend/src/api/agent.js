@@ -22,8 +22,17 @@ async function handle(res) {
   return data;
 }
 
-/** Ch2: non-streaming chat */
-export async function agentChat({ tenantId, role, message, history, forceTimeout, pauseAfterSteps }) {
+/** Ch2/Ch11: non-streaming chat */
+export async function agentChat({
+  tenantId,
+  role,
+  message,
+  history,
+  forceTimeout,
+  pauseAfterSteps,
+  multiAgent,
+  sessionId,
+}) {
   return handle(
     await fetch("/api/agent/chat", {
       method: "POST",
@@ -33,13 +42,15 @@ export async function agentChat({ tenantId, role, message, history, forceTimeout
         history: history || [],
         force_timeout: !!forceTimeout,
         pause_after_steps: pauseAfterSteps || null,
+        multi_agent: !!multiAgent,
+        session_id: sessionId || null,
       }),
     })
   );
 }
 
 /**
- * Ch3: SSE stream. onEvent(eventName, data). Returns final done payload.
+ * Ch3/Ch11: SSE stream. onEvent(eventName, data). Returns final done payload.
  */
 export async function agentChatStream({
   tenantId,
@@ -48,6 +59,8 @@ export async function agentChatStream({
   history,
   forceTimeout,
   pauseAfterSteps,
+  multiAgent,
+  sessionId,
   onEvent,
 }) {
   const res = await fetch("/api/agent/chat/stream", {
@@ -58,6 +71,8 @@ export async function agentChatStream({
       history: history || [],
       force_timeout: !!forceTimeout,
       pause_after_steps: pauseAfterSteps || null,
+      multi_agent: !!multiAgent,
+      session_id: sessionId || null,
     }),
   });
   if (!res.ok) {

@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.agent.loop import run_agent, stream_agent
+from app.agent.supervisor import run_supervised, stream_supervised
 from app.auth.deps import Identity
 import app.config as config_mod
 from app.db.session import get_db
@@ -27,6 +28,7 @@ class ChatBody(BaseModel):
     force_timeout: bool = False
     pause_after_steps: int | None = Field(default=None, ge=1)
     stream: bool = False
+    multi_agent: bool = False
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
@@ -89,7 +91,8 @@ async def agent_chat(
         return await _stream_response(body, identity, db)
 
     history, memory_meta, session_id = _prepare_history(body, identity, db)
-    result = await run_agent(
+    runner = run_supervised if body.multi_agent else run_agent
+    result = await runner(
         body.message,
         db,
         history=history,
@@ -124,7 +127,8 @@ async def _stream_response(body: ChatBody, identity: dict, db: Session) -> Strea
     async def gen() -> AsyncIterator[str]:
         yield _sse("memory", {**memory_meta, "session_id": session_id})
         final_reply = ""
-        async for evt in stream_agent(
+        streamer = stream_supervised if body.multi_agent else stream_agent
+        async for evt in streamer(
             body.message,
             db,
             history=history,

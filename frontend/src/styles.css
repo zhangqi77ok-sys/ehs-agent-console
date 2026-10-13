@@ -203,3 +203,14 @@ button.link { background: transparent; color: var(--accent); padding: 0; }
   font-size: 0.85rem;
 }
 .error { color: var(--danger); }
+
+.pill {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e8f1ff;
+  color: #1d4ed8;
+}

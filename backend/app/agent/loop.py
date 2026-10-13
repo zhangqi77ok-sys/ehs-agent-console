@@ -58,6 +58,8 @@ async def stream_agent(
     on_checkpoint: CheckpointCb | None = None,
     on_hitl: CheckpointCb | None = None,
     hitl_enabled: bool | None = None,
+    allowed_tools: set[str] | None = None,
+    agent_label: str = "agent",
 ) -> AsyncIterator[dict[str, Any]]:
     """Yield events: identity, budget, step_start, tool_call, tool_result, note, final, paused, error, done."""
     identity = {
@@ -71,7 +73,7 @@ async def stream_agent(
         role=role,
         actor=identity["actor"],
     )
-    schemas = schemas_for_tools()
+    schemas = schemas_for_tools(allowed_tools)
     use_hitl = settings.hitl_enabled if hitl_enabled is None else hitl_enabled
 
     rs = resume_state or {}
@@ -83,7 +85,8 @@ async def stream_agent(
     budget_max = settings.max_agent_steps
     budget_used = start_i
 
-    yield {"event": "identity", "data": identity}
+    yield {"event": "identity", "data": {**identity, "agent": agent_label}}
+    yield {"event": "agent", "data": {"agent": agent_label, "allowed_tools": sorted(allowed_tools) if allowed_tools else None}}
     yield {"event": "budget", "data": {"used": budget_used, "max": budget_max, "unit": "steps"}}
 
     if start_i > 0:
@@ -166,6 +169,7 @@ async def stream_agent(
                 "name": name,
                 "arguments": args,
                 "call_id": call_id,
+                "agent": agent_label,
             }
             steps.append(call_step)
             yield {"event": "tool_call", "data": call_step}
@@ -214,13 +218,14 @@ async def stream_agent(
                 }
                 return
 
-            result = await run_tool_async(name, args, ctx)
+            result = await run_tool_async(name, args, ctx, allowed=allowed_tools)
             result_step = {
                 "index": budget_used,
                 "kind": "tool_result",
                 "name": name,
                 "result": result,
                 "call_id": call_id,
+                "agent": agent_label,
             }
             steps.append(result_step)
             tool_results.append(
@@ -267,7 +272,7 @@ async def stream_agent(
 
         # final
         content = str(decision.get("content") or "")
-        final_step = {"index": budget_used, "kind": "final", "content": content}
+        final_step = {"index": budget_used, "kind": "final", "content": content, "agent": agent_label}
         steps.append(final_step)
         yield {"event": "final", "data": final_step}
         ck = _checkpoint_payload(
@@ -293,7 +298,7 @@ async def stream_agent(
 
     # budget exhausted
     content = f"已达最大步数 {budget_max}，请缩小问题或续跑。"
-    final_step = {"index": budget_used, "kind": "final", "content": content}
+    final_step = {"index": budget_used, "kind": "final", "content": content, "agent": agent_label}
     steps.append(final_step)
     yield {"event": "final", "data": final_step}
     ck = _checkpoint_payload(

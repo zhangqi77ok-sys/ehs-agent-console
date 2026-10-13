@@ -29,6 +29,7 @@ TOOLS: dict[str, ToolFn] = {
 }
 
 WRITE_TOOLS = frozenset({"create_corrective_ticket", "advance_corrective_ticket"})
+READ_TOOLS = frozenset({"query_hazard_ledger", "list_open_hazards", "list_corrective_tickets", "search_regulations"})
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
@@ -110,7 +111,9 @@ def schemas_for_tools(allowed: set[str] | None = None) -> list[dict[str, Any]]:
     return [s for s in TOOL_SCHEMAS if s["name"] in allowed]
 
 
-def run_tool(name: str, args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
+def run_tool(name: str, args: dict[str, Any], ctx: ToolContext, allowed: set[str] | None = None) -> dict[str, Any]:
+    if allowed is not None and name not in allowed:
+        return {"ok": False, "error": f"工具 {name} 不在当前子 Agent 权限内", "denied": True}
     fn = TOOLS.get(name)
     if not fn:
         return {"ok": False, "error": f"未知工具: {name}"}
@@ -122,10 +125,10 @@ def run_tool(name: str, args: dict[str, Any], ctx: ToolContext) -> dict[str, Any
         return {"ok": False, "error": str(exc)}
 
 
-async def run_tool_async(name: str, args: dict[str, Any], ctx: ToolContext) -> dict[str, Any]:
+async def run_tool_async(name: str, args: dict[str, Any], ctx: ToolContext, allowed: set[str] | None = None) -> dict[str, Any]:
     try:
         return await asyncio.wait_for(
-            asyncio.to_thread(run_tool, name, args, ctx),
+            asyncio.to_thread(run_tool, name, args, ctx, allowed),
             timeout=settings.tool_timeout_s,
         )
     except asyncio.TimeoutError:
