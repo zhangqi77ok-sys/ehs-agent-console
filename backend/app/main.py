@@ -36,7 +36,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="EHS Agent Console",
-    version="2.4.0",
+    version="2.5.0",
     description="v2 + eng-1 persist + eng-2 pytest + eng-3 obs/auth + ind-01 durable runs",
     lifespan=lifespan,
 )
@@ -95,6 +95,7 @@ def health() -> dict[str, Any]:
         "observability": "request_id+json_access_log",
         "durable_runs": True,
         "agent_trace": True,
+        "hitl": settings.hitl_enabled,
         "hazard_count": hazards["count"],
         "ticket_count": tickets["count"],
         "as_of": hazards.get("as_of"),

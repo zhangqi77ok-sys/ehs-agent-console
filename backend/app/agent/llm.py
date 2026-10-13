@@ -61,8 +61,10 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
                 return {
                     "type": "final",
                     "content": (
-                        f"已开整改单 {t['ticket_id']}：针对 {t['hazard_id']}「{t['hazard_title']}」，"
-                        f"措施「{t['action']}」，责任人 {t['assignee']}，期限 {t['due_days']} 天。"
+                        f"已开整改单 {t['ticket_id']}：针对 {t['hazard_id']}「{t.get('hazard_title') or ''}」，"
+                        f"措施「{t.get('action') or t.get('measures') or ''}」，"
+                        f"责任人 {t.get('assignee') or t.get('owner') or ''}，"
+                        f"期限 {t.get('due_date') or t.get('due_days') or ''}。"
                     ),
                 }
             return {"type": "final", "content": f"开单失败：{inner.get('error', '未知错误')}"}

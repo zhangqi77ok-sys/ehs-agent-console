@@ -113,3 +113,21 @@ class AgentSpan(Base):
     input_json: Mapped[str] = mapped_column(Text, default="{}")
     output_json: Mapped[str] = mapped_column(Text, default="{}")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class AgentApproval(Base):
+    """HITL gate for write tools (Ind-03)."""
+
+    __tablename__ = "agent_approvals"
+
+    approval_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(40), ForeignKey("agent_runs.run_id"), index=True)
+    tool_name: Mapped[str] = mapped_column(String(128), default="")
+    arguments_json: Mapped[str] = mapped_column(Text, default="{}")
+    call_id: Mapped[str] = mapped_column(String(40), default="")
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    # pending | approved | rejected
+    decided_by: Mapped[str] = mapped_column(String(64), default="")
+    note: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

@@ -66,6 +66,7 @@ async def run_agent(
     resume_state: dict[str, Any] | None = None,
     pause_after_steps: int | None = None,
     on_checkpoint: CheckpointCb | None = None,
+    on_hitl: CheckpointCb | None = None,
 ) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
     reply = ""
@@ -81,6 +82,7 @@ async def run_agent(
         resume_state=resume_state,
         pause_after_steps=pause_after_steps,
         on_checkpoint=on_checkpoint,
+        on_hitl=on_hitl,
     ):
         name = evt["event"]
         data = evt["data"]
@@ -96,7 +98,7 @@ async def run_agent(
             reply = data.get("detail") or reply
             status = "failed"
         if name == "paused":
-            status = "paused"
+            status = data.get("status") or "paused"
             reply = data.get("detail") or reply
             steps = data.get("steps") or steps
             budget = data.get("budget") or budget
@@ -127,6 +129,7 @@ async def stream_agent(
     resume_state: dict[str, Any] | None = None,
     pause_after_steps: int | None = None,
     on_checkpoint: CheckpointCb | None = None,
+    on_hitl: CheckpointCb | None = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """Yield SSE events. Supports Ind-01 resume_state + pause_after_steps + on_checkpoint."""
     identity = resolve_identity(tenant_id, role)
@@ -292,6 +295,48 @@ async def stream_agent(
         }
         steps.append(call_step)
         yield {"event": "tool_call", "data": call_step}
+
+        # Ind-03 HITL: pause before write tools until human approves
+        if (
+            settings.hitl_enabled
+            and name in settings.hitl_write_tool_set
+            and ok_tool
+            and on_hitl is not None
+        ):
+            ck = _checkpoint_payload(
+                message=message,
+                history=hist,
+                tool_results=tool_results,
+                steps=steps,
+                budget_used=budget_used,
+            )
+            ck["pending_tool"] = {
+                "name": name,
+                "arguments": args,
+                "call_id": call_id,
+            }
+            hitl_payload = {
+                **ck,
+                "_status": "awaiting_approval",
+                "_reply": f"等待人工审批写工具：{name}",
+                "_hitl_tool": name,
+                "_hitl_arguments": args,
+                "_hitl_call_id": call_id,
+            }
+            await _emit_checkpoint(on_hitl, hitl_payload)
+            await _emit_checkpoint(on_checkpoint, hitl_payload)
+            yield {
+                "event": "paused",
+                "data": {
+                    "status": "awaiting_approval",
+                    "detail": f"HITL：工具 {name} 待审批后方可执行",
+                    "pending_tool": ck["pending_tool"],
+                    "steps": steps,
+                    "budget": {"used": budget_used, "max": budget_max, "unit": "steps"},
+                    "checkpoint": ck,
+                },
+            }
+            return
 
         if not ok_tool:
             result = {"ok": False, "error": deny_reason, "denied": True}

@@ -55,9 +55,17 @@ class Settings(BaseSettings):
     auth_allow_demo_login: bool = True
     demo_login_secret: str = "ehs-demo"
 
+    # Human-in-the-loop (ind-03)
+    hitl_enabled: bool = True
+    hitl_write_tools: str = "create_corrective_ticket,advance_corrective_ticket"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def hitl_write_tool_set(self) -> set[str]:
+        return {x.strip() for x in self.hitl_write_tools.split(",") if x.strip()}
 
 
 settings = Settings()

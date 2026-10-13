@@ -22,6 +22,8 @@ def classify_failure(steps: list[dict[str, Any]], status: str, error: str = "") 
         return "ok"
     if status == "paused":
         return "paused"
+    if status == "awaiting_approval":
+        return "awaiting_approval"
     blob = " ".join(json.dumps(s, ensure_ascii=False) for s in steps) + " " + (error or "")
     if "超时" in blob or "timeout" in blob.lower():
         return "timeout"

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import DomainPanel from "./components/DomainPanel.jsx";
 import ChatPanel from "./components/ChatPanel.jsx";
 import StepsPanel from "./components/StepsPanel.jsx";
+import RuntimePanel from "./components/RuntimePanel.jsx";
 import {
   advanceTicket,
   createSession,
@@ -153,7 +154,7 @@ export default function App() {
       <div className="topbar">
         <div className="brand">
           <strong>EHS Agent Console</strong>
-          <span className="muted">v2 · 第1–9章</span>
+          <span className="muted">v2 · 第1–9章 · Ind Runtime</span>
         </div>
         <div className="tabs">
           <button
@@ -169,6 +170,13 @@ export default function App() {
             onClick={() => setTab("agent")}
           >
             Agent 控制台
+          </button>
+          <button
+            type="button"
+            className={tab === "runtime" ? "tab on" : "tab"}
+            onClick={() => setTab("runtime")}
+          >
+            Runtime
           </button>
         </div>
         <div className="identity">
@@ -197,6 +205,11 @@ export default function App() {
               session {sessionId.slice(0, 10)}…
             </span>
           ) : null}
+          {health?.hitl != null ? (
+            <span className="chip" title="HITL">
+              HITL {health.hitl ? "ON" : "OFF"}
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -209,6 +222,8 @@ export default function App() {
           onCreate={onCreate}
           onAdvance={onAdvance}
         />
+      ) : tab === "runtime" ? (
+        <RuntimePanel identity={identity} />
       ) : (
         <div className="agent-layout">
           <ChatPanel
