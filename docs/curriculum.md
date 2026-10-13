@@ -10,7 +10,7 @@
 | Ch4 | Durable run：checkpoint / pause / resume | ✅ | [ch4-durable-run](./lessons/ch4-durable-run.md) |
 | Ch5 | Span Trace + Replay + 写工具 HITL | ✅ | [ch5-trace-hitl](./lessons/ch5-trace-hitl.md) |
 | Ch6 | Mock 确定性 Eval 门禁 + Compose/Postgres | ✅ | [ch6-eval-compose](./lessons/ch6-eval-compose.md) |
-| Ch7 | 面试追问稿 + 简历项目段 | ⏳ | — |
+| Ch7 | 面试追问稿 + 简历项目段 | ✅ | [ch7-interview](./lessons/ch7-interview.md) · [interview](./interview.md) |
 
 ## 硬约束
 
