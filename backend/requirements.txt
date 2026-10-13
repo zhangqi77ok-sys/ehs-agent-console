@@ -12,3 +12,4 @@ alembic>=1.13
 greenlet>=3.0
 pytest>=8.0
 PyJWT>=2.8
+psycopg[binary]>=3.1

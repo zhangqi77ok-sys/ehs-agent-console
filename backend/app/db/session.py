@@ -9,10 +9,16 @@ from ..config import settings
 from .base import Base
 
 _url = settings.database_url
-_connect_args = {"check_same_thread": False} if _url.startswith("sqlite") else {}
-engine = create_engine(_url, future=True, connect_args=_connect_args)
+_is_sqlite = _url.startswith("sqlite")
+_connect_args = {"check_same_thread": False} if _is_sqlite else {}
+engine = create_engine(
+    _url,
+    future=True,
+    connect_args=_connect_args,
+    pool_pre_ping=not _is_sqlite,
+)
 
-if _url.startswith("sqlite"):
+if _is_sqlite:
 
     @event.listens_for(engine, "connect")
     def _sqlite_fk(dbapi_conn, _):  # noqa: ANN001

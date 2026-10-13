@@ -50,6 +50,20 @@ npm run dev
 
 评测：`python scripts\run_eval.py -v`
 
+
+
+## Docker Compose（Postgres 全栈，Ind-05）
+
+本机 SQLite 跟练仍可用上一节。要演示**生产同形**依赖：
+
+```powershell
+copy .env.example .env
+docker compose up -d --build
+# UI http://127.0.0.1:5173  API http://127.0.0.1:8000/health
+```
+
+说明与坑点：[docs/lessons/ind-05-compose-postgres.md](docs/lessons/ind-05-compose-postgres.md)。
+
 ## License
 
 MIT

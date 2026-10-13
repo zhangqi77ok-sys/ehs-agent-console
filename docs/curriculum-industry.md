@@ -25,7 +25,7 @@
 | Ind-02 | Span Trace + 回放 | [ind-02-trace-replay](./lessons/ind-02-trace-replay.md) | ✅ |
 | Ind-03 | 写操作 HITL 审批 | [ind-03-hitl](./lessons/ind-03-hitl.md) | ✅ |
 | Ind-04 | CI 确定性 Eval 门禁 | [ind-04-det-eval](./lessons/ind-04-det-eval.md) | ✅ |
-| Ind-05 | Docker Compose + Postgres | — | 待做 |
+| Ind-05 | Docker Compose + Postgres | [ind-05-compose-postgres](./lessons/ind-05-compose-postgres.md) | ✅ |
 | Ind-06 | 工具策略与审计日志 | — | 待做 |
 | Ind-07 | 上下文压缩与记忆分层 | — | 待做 |
 | Ind-08 | 多 Agent 编排（Supervisor） | — | 待做 |
