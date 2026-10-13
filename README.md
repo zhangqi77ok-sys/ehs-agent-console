@@ -1,6 +1,6 @@
 # ehs-agent-console
 
-EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch17**）。面向成都 Agent 应用/后端（约 20–30k）作品集：**课记可追问 · Demo 真串得起来 · 工程非贴皮**。
+EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch22**）。面向成都 Agent 应用/后端（约 20–30k）作品集：**课记可追问 · Demo 真串得起来 · 工程非贴皮**。
 
 > 诚实声明：任何仓库都不能保证面试成功或 offer；本仓把高频技术点做到可演示、可指代码，并附模拟面试、失败演练与 Practice 自评。口语、真 LLM 临场、公司匹配仍是你的变量。
 
@@ -8,7 +8,7 @@ EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch17**）。面向成都 Agent
 
 | 文档 | 说明 |
 |------|------|
-| [`docs/curriculum.md`](docs/curriculum.md) | 大纲 Ch1–17 |
+| [`docs/curriculum.md`](docs/curriculum.md) | 大纲 Ch1–22 |
 | [`docs/architecture.md`](docs/architecture.md) | Runtime 架构一页纸（mermaid） |
 | [`docs/jd-gap-matrix.md`](docs/jd-gap-matrix.md) | JD 关键词 → 路径/Demo |
 | [`docs/demo-script.md`](docs/demo-script.md) | 10 分钟 Demo |
@@ -62,3 +62,8 @@ cp .env.example .env && docker compose up --build
 - **Ch15** MCP 风格 tools list + call（薄层）  
 - **Ch16** 多维 Eval + dashboard  
 - **Ch17** Practice 面试练习模式  
+- **Ch18** OTLP HTTP JSON 可选导出  
+- **Ch19** JWKS / OIDC-lite 验签  
+- **Ch20** 并行 Multi-Agent + parallel 徽章  
+- **Ch21** 可选 Live LLM Eval（默认 skip）  
+- **Ch22** 就绪评分卡  

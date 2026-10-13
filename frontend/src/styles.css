@@ -214,6 +214,10 @@ button.link { background: transparent; color: var(--accent); padding: 0; }
   background: #e8f1ff;
   color: #1d4ed8;
 }
+.pill.parallel-badge {
+  background: #fef3c7;
+  color: #b45309;
+}
 
 .timeline-grid {
   display: grid;

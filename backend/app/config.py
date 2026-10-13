@@ -36,9 +36,11 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 480
     api_keys_json: str = '{"demo-key":{"tenant_id":"demo-plant","role":"ehs_engineer","actor":"api-key-demo"}}'
     auth_require_credential: bool = False  # False = allow X-Tenant-Id demo headers
+    auth_jwks_url: str = ""  # Ch19: JWKS URL for RS256; empty = HS256 only
 
-    # Observability (Ch8)
+    # Observability (Ch8 / Ch18)
     access_log_json: bool = True
+    otel_exporter_otlp_endpoint: str = ""  # e.g. http://localhost:4318 — empty = no-op
 
     # Memory (Ch10)
     memory_max_chars: int = 2000

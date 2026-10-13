@@ -23,10 +23,15 @@
 | Ch15 | MCP 风格工具适配薄层（schema + invoke，非完整 SSE 协议） | ✅ | [ch15-mcp-adapter](./lessons/ch15-mcp-adapter.md) |
 | Ch16 | 多维 Eval（工具/回复/延迟/策略拒绝） | ✅ | [ch16-eval-dims](./lessons/ch16-eval-dims.md) |
 | Ch17 | 面试练习模式（题库 + rubric + localStorage 打分） | ✅ | [ch17-practice](./lessons/ch17-practice.md) |
+| Ch18 | OTLP HTTP JSON 可选导出（endpoint 空则 no-op） | ✅ | [ch18-otel](./lessons/ch18-otel.md) |
+| Ch19 | JWKS / OIDC-lite 验签（保留本地 HS256） | ✅ | [ch19-oidc](./lessons/ch19-oidc.md) |
+| Ch20 | 并行 Multi-Agent fan-out + UI parallel 徽章 | ✅ | [ch20-parallel-agents](./lessons/ch20-parallel-agents.md) |
+| Ch21 | 可选 Live LLM Eval（默认 skip） | ✅ | [ch21-live-llm-eval](./lessons/ch21-live-llm-eval.md) |
+| Ch22 | 就绪评分卡 + JD 残留关闭说明 | ✅ | [ch22-ceiling](./lessons/ch22-ceiling.md) |
 
 ## 硬约束
 
 - 工具不得旁路领域层（状态机 + 审计）
 - `LLM_PROVIDER=mock` 必须能演示全链路；真 LLM 可选
 - 每章：代码 + 中文课记 + pytest + push main
-- **诚实**：仓库不能保证 offer；Ch13–17 只负责把技术面残留尽量抹平
+- **诚实**：仓库不能保证 offer；Ch13–22 只负责把技术面残留尽量抹平（见 readiness-scorecard）

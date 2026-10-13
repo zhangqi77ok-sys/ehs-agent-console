@@ -53,6 +53,7 @@ export default function AgentPanel({ tenantId, role }) {
   const [multiAgent, setMultiAgent] = useState(true);
   const [route, setRoute] = useState("");
   const [timeline, setTimeline] = useState([]);
+  const [parallel, setParallel] = useState(false);
   const bottomRef = useRef(null);
 
   const invSteps = useMemo(
@@ -80,6 +81,7 @@ export default function AgentPanel({ tenantId, role }) {
     setSteps([]);
     setRoute("");
     setTimeline([]);
+    setParallel(false);
 
     const pauseAfterSteps = pauseAfter ? Number(pauseAfter) : null;
 
@@ -98,6 +100,7 @@ export default function AgentPanel({ tenantId, role }) {
             if (name === "supervisor") {
               setRoute(data.route || "");
               setTimeline(data.timeline || []);
+              setParallel(!!data.parallel);
             }
             if (name === "budget") setBudget(data);
             if (["tool_call", "tool_result", "final", "note"].includes(name)) {
@@ -117,6 +120,7 @@ export default function AgentPanel({ tenantId, role }) {
         setStatus(done?.status || "completed");
         setRoute(done?.supervisor?.route || route);
         setTimeline(done?.supervisor?.timeline || []);
+        setParallel(!!done?.supervisor?.parallel);
       } else {
         const res = await agentChat({
           tenantId,
@@ -129,6 +133,7 @@ export default function AgentPanel({ tenantId, role }) {
         });
         setRoute(res.supervisor?.route || "");
         setTimeline(res.supervisor?.timeline || []);
+        setParallel(!!res.supervisor?.parallel);
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: res.reply || "(无回复)" },
@@ -154,6 +159,7 @@ export default function AgentPanel({ tenantId, role }) {
             <h2>
               Agent 对话{" "}
               {route ? <span className="pill">→ {route}</span> : null}
+              {parallel ? <span className="pill parallel-badge">parallel</span> : null}
               {timeline.length > 1 ? (
                 <span className="muted small"> · {timeline.join(" → ")}</span>
               ) : null}
@@ -197,7 +203,7 @@ export default function AgentPanel({ tenantId, role }) {
             </div>
           </div>
           <p className="muted small">
-            工具只调领域层。多 Agent 试：「先查灭火器隐患再给 HZ-2026-001 开整改单，措施：更换过期灭火器」——可见 Investigator / Clerk 双时间线。
+            工具只调领域层。多 Agent：顺序「先查…再开单」；并行「同时查制度并给 HZ-… 开整改单」——UI 显示 parallel 徽章。
           </p>
           <div className="chat-log">
             {messages.length === 0 && (
@@ -251,12 +257,12 @@ export default function AgentPanel({ tenantId, role }) {
               )}
               <div className="timeline-grid">
                 <TimelineColumn
-                  title="Investigator（只读）"
+                  title={parallel ? "Investigator（并行·只读）" : "Investigator（只读）"}
                   active={invSteps.length > 0}
                   steps={invSteps}
                 />
                 <TimelineColumn
-                  title="Clerk（可写）"
+                  title={parallel ? "Clerk（并行·可写）" : "Clerk（可写）"}
                   active={clerkSteps.length > 0}
                   steps={clerkSteps}
                 />

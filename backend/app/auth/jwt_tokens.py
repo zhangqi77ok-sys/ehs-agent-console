@@ -1,4 +1,4 @@
-"""JWT issue/verify for multi-tenant identity (Ch8)."""
+"""JWT issue/verify for multi-tenant identity (Ch8 + Ch19 JWKS)."""
 
 from __future__ import annotations
 
@@ -49,6 +49,14 @@ def issue_token(
 
 
 def decode_token(token: str) -> dict[str, Any]:
+    """Verify Bearer JWT: HS256 via local secret, or JWKS when AUTH_JWKS_URL set."""
+    from app.auth.jwks import decode_token_via_jwks, jwks_enabled, peek_alg
+
+    alg = peek_alg(token)
+    if alg and alg.startswith(("RS", "ES", "PS")) and jwks_enabled():
+        return decode_token_via_jwks(token)
+
+    # Prefer HS256 local first; if it fails and JWKS is configured, fall back.
     try:
         payload = jwt.decode(
             token,
@@ -58,7 +66,10 @@ def decode_token(token: str) -> dict[str, Any]:
     except jwt.ExpiredSignatureError as exc:
         raise HTTPException(status_code=401, detail="JWT 已过期") from exc
     except jwt.InvalidTokenError as exc:
+        if jwks_enabled():
+            return decode_token_via_jwks(token)
         raise HTTPException(status_code=401, detail="JWT 无效") from exc
+
     tenant_id = str(payload.get("tenant_id") or "").strip()
     if not tenant_id:
         raise HTTPException(status_code=401, detail="JWT 缺少 tenant_id")
