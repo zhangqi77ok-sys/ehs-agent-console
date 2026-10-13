@@ -24,9 +24,16 @@ class LLMCallError(RuntimeError):
 _RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 
+def _mock_line(item: dict[str, Any]) -> str:
+    status = item.get("display_status") or item.get("status") or ""
+    return (
+        f"- {item['id']}｜{item['title']}｜{item['level']}｜{status}｜"
+        f"责任人 {item.get('owner') or ''}"
+    )
+
+
 def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict]) -> dict[str, Any]:
-    """Deterministic policy for offline demos (LLM_PROVIDER=mock only)."""
-    msg = user_message.lower()
+    """Deterministic policy for offline demos / CI eval (LLM_PROVIDER=mock)."""
 
     # If we already have tool results, produce a final answer.
     if tool_results:
@@ -40,16 +47,20 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
                     "type": "final",
                     "content": "台账里没有匹配的隐患。你可以换个关键词，或让我按「重大」级别再查一次。",
                 }
-            lines = [f"- {i['id']}｜{i['title']}｜{i['level']}｜{i['status']}｜责任人 {i['owner']}" for i in items]
+            overdue_n = sum(1 for i in items if i.get("overdue") or i.get("display_status") == "逾期")
+            head = "查询到以下隐患"
+            if overdue_n:
+                head = f"查询到以下隐患（含 {overdue_n} 条逾期）"
+            lines = [_mock_line(i) for i in items]
             return {
                 "type": "final",
-                "content": "查询到以下隐患：\n" + "\n".join(lines) + "\n\n如需开整改单，告诉我隐患编号和整改措施即可。",
+                "content": head + "：\n" + "\n".join(lines) + "\n\n如需开整改单，告诉我隐患编号和整改措施即可。",
             }
         if name == "list_open_hazards":
             items = (result.get("result") or {}).get("items") or []
             if not items:
                 return {"type": "final", "content": "当前没有未闭环（待整改/整改中）的隐患。"}
-            lines = [f"- {i['id']}｜{i['title']}｜{i['level']}｜{i['status']}｜责任人 {i['owner']}" for i in items]
+            lines = [_mock_line(i) for i in items]
             return {
                 "type": "final",
                 "content": f"未闭环隐患共 {len(items)} 条：\n" + "\n".join(lines),
@@ -68,6 +79,19 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
                     ),
                 }
             return {"type": "final", "content": f"开单失败：{inner.get('error', '未知错误')}"}
+        if name == "advance_corrective_ticket":
+            inner = result.get("result") or result
+            if inner.get("ok"):
+                t = inner.get("ticket") or {}
+                hz = (inner.get("hazard") or {}).get("status") or ""
+                return {
+                    "type": "final",
+                    "content": (
+                        f"整改单 {t.get('ticket_id')} 验收关闭完成：状态「{t.get('status')}」，"
+                        f"隐患已闭环（{hz or '已闭环'}）。"
+                    ),
+                }
+            return {"type": "final", "content": f"推进失败：{inner.get('error', '未知错误')}"}
         if name == "search_regulations":
             chunks = (result.get("result") or {}).get("chunks") or []
             if not chunks:
@@ -80,7 +104,36 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
     if any(k in user_message for k in ("有哪些待整改", "待整改的隐患", "未闭环", "开放隐患", "未关闭隐患")):
         return {"type": "tool_call", "name": "list_open_hazards", "arguments": {}}
 
-    if any(k in msg for k in ("法规", "闭环要求", "作业票", "分级", "期限")):
+    # Advance CAPA before generic "整改" create-ticket routing.
+    ca = re.search(r"CA-?(\d{3})", user_message, re.I)
+    if ca and any(k in user_message for k in ("验收", "关闭", "推进", "驳回", "开始执行", "提交验收")):
+        ticket_id = f"CA-{ca.group(1)}"
+        if "驳回" in user_message:
+            action = "reject"
+        elif "开始" in user_message:
+            action = "start"
+        elif "提交" in user_message:
+            action = "submit_verify"
+        else:
+            action = "close"
+        evidence = ""
+        em = re.search(r"说明[：:]\s*(.+)", user_message)
+        if em:
+            evidence = em.group(1).strip()
+        return {
+            "type": "tool_call",
+            "name": "advance_corrective_ticket",
+            "arguments": {
+                "ticket_id": ticket_id,
+                "action": action,
+                "evidence_note": evidence or "验收通过",
+            },
+        }
+
+    if any(
+        k in user_message
+        for k in ("法规", "闭环要求", "作业票", "分级", "期限", "动火", "高处", "手续", "有限空间")
+    ):
         return {
             "type": "tool_call",
             "name": "search_regulations",
@@ -88,21 +141,38 @@ def _mock_decide(user_message: str, history: list[dict], tool_results: list[dict
         }
 
     m = re.search(r"HZ-?(\d{4})-?(\d{3})", user_message, re.I)
-    if m and any(k in msg for k in ("整改", "开单", "纠正", "处理")):
+    if m and any(k in user_message for k in ("开整改单", "开单", "纠正", "创建整改")):
         hazard_id = f"HZ-{m.group(1)}-{m.group(2)}"
         action = "按制度完成整改并复查"
-        am = re.search(r"措施[：:]\s*(.+)", user_message)
+        am = re.search(r"措施[：:]\s*([^，,。；;]+)", user_message)
         if am:
             action = am.group(1).strip()
+        assignee = "现场安全员"
+        om = re.search(r"责任人\s*([^，,。；;\s]+)", user_message)
+        if om:
+            assignee = om.group(1).strip()
         return {
             "type": "tool_call",
             "name": "create_corrective_ticket",
-            "arguments": {"hazard_id": hazard_id, "action": action, "assignee": "现场安全员", "due_days": 7},
+            "arguments": {
+                "hazard_id": hazard_id,
+                "action": action,
+                "assignee": assignee,
+                "due_days": 7,
+            },
         }
 
-    # Default: query ledger
+    # Overdue query — must set overdue_only / status=逾期 (not keyword=逾期).
+    if "逾期" in user_message:
+        return {
+            "type": "tool_call",
+            "name": "query_hazard_ledger",
+            "arguments": {"keyword": "", "status": "", "level": "", "overdue_only": True},
+        }
+
+    # Default: query ledger (level/status are filters, not keywords).
     keyword = ""
-    for token in ("灭火器", "配电", "通道", "重大", "一般", "待整改", "整改中", "已闭环"):
+    for token in ("灭火器", "配电", "通道", "冲压", "危化", "叉车", "气瓶"):
         if token in user_message:
             keyword = token
             break

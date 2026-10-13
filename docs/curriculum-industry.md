@@ -24,7 +24,7 @@
 | Ind-01 | 长任务 Run：checkpoint / 暂停 / 续跑 | [ind-01-durable-run](./lessons/ind-01-durable-run.md) | ✅ |
 | Ind-02 | Span Trace + 回放 | [ind-02-trace-replay](./lessons/ind-02-trace-replay.md) | ✅ |
 | Ind-03 | 写操作 HITL 审批 | [ind-03-hitl](./lessons/ind-03-hitl.md) | ✅ |
-| Ind-04 | CI 确定性 Eval 门禁 | — | 待做 |
+| Ind-04 | CI 确定性 Eval 门禁 | [ind-04-det-eval](./lessons/ind-04-det-eval.md) | ✅ |
 | Ind-05 | Docker Compose + Postgres | — | 待做 |
 | Ind-06 | 工具策略与审计日志 | — | 待做 |
 | Ind-07 | 上下文压缩与记忆分层 | — | 待做 |

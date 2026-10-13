@@ -1,4 +1,4 @@
-"""Eval gate: skip in CI / without a real LLM key (Eng-02 DoD)."""
+"""Real-LLM eval path: skip without a key (Eng-02). Mock gate lives in test_eval_deterministic."""
 
 from __future__ import annotations
 
@@ -9,12 +9,12 @@ import pytest
 from app.config import settings
 
 
-def test_eval_skipped_without_real_llm_key():
-    """CI stays green without secrets; full eval stays a local/manual gate."""
+def test_real_llm_eval_skipped_without_key():
+    """Burning tokens stays local/manual; CI uses mock eval instead."""
     key = (os.environ.get("OPENAI_API_KEY") or settings.openai_api_key or "").strip()
     provider = (os.environ.get("LLM_PROVIDER") or settings.llm_provider or "").strip().lower()
     if provider == "mock" or not key or key.startswith("sk-your-"):
-        pytest.skip("无真实 LLM key：跳过 eval（本地有 key 时用 python scripts/run_eval.py）")
+        pytest.skip("无真实 LLM key：跳过真模型 eval（确定性门禁见 test_eval_deterministic）")
     # With a real key present, only assert the cases file exists (don't burn tokens in CI).
     from pathlib import Path
 

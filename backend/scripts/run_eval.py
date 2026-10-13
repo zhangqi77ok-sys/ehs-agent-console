@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Week1 Day5 — lightweight eval harness for the EHS Agent console.
+"""Eval harness for the EHS Agent console (Ind-04).
 
-Runs 3–5 fixed cases against the real Agent loop (same path as the UI),
+Runs fixed cases against the real Agent loop (same path as the UI),
 checks tool names + reply keywords, prints a pass/fail table.
 
-Usage (from repo root or backend/):
+Usage (from backend/):
 
-    cd backend
     source .venv/bin/activate
-    python scripts/run_eval.py
+    LLM_PROVIDER=mock python scripts/run_eval.py          # CI / deterministic
+    LLM_PROVIDER=openai python scripts/run_eval.py -v     # real LLM (needs key)
 
 Exit code 0 = all passed; non-zero = at least one failure or config error.
 
-Requires real LLM config in backend/.env (LLM_PROVIDER=openai + key/base/model).
-Do not commit secrets.
+Under mock: HITL is disabled so write-tool cases complete without a human gate
+(run_agent also has no on_hitl callback). Real-LLM eval keeps HITL off the same
+way unless you wire approvals yourself.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -53,7 +55,6 @@ def _tools_called(steps: list[dict[str, Any]]) -> list[str]:
     return names
 
 
-
 def _tool_result_blob(steps: list[dict[str, Any]]) -> str:
     """Serialize tool_result payloads for keyword checks (RAG evidence etc.)."""
     parts: list[str] = []
@@ -72,6 +73,8 @@ def _has_final(steps: list[dict[str, Any]], reply: str) -> bool:
 def _looks_like_failure(reply: str, steps: list[dict[str, Any]]) -> bool:
     text = reply or ""
     if text.startswith("调用失败：") or "已达到最大步数预算" in text:
+        return True
+    if text.startswith("开单失败：") or text.startswith("推进失败："):
         return True
     for s in steps:
         if s.get("kind") == "final" and str(s.get("content") or "").startswith("调用失败："):
@@ -105,13 +108,11 @@ def _check_case(case: dict[str, Any], result: dict[str, Any]) -> tuple[bool, lis
         if k not in reply:
             reasons.append(f"最终回答缺少关键词「{k}」")
 
-
     tr_any = expect.get("tool_result_keywords_any") or []
     if tr_any:
         blob = _tool_result_blob(steps)
         if not any(k in blob for k in tr_any):
             reasons.append(f"tool_result 未含关键词任一 {tr_any}")
-
 
     if expect.get("must_have_final", True) and not _has_final(steps, reply):
         reasons.append("没有 final 步骤 / 空回复")
@@ -119,11 +120,14 @@ def _check_case(case: dict[str, Any], result: dict[str, Any]) -> tuple[bool, lis
     if expect.get("must_succeed", True) and _looks_like_failure(reply, steps):
         reasons.append(f"判定为失败回复: {reply[:120]}")
 
+    status = result.get("status") or ""
+    if status in ("awaiting_approval", "paused") and expect.get("must_succeed", True):
+        reasons.append(f"run 未完成（status={status}）；eval 应关闭 HITL")
+
     return (len(reasons) == 0, reasons)
 
 
 def _print_table(rows: list[dict[str, Any]]) -> None:
-    # Simple fixed-width table — no deps.
     cols = ["id", "name", "pass", "tools", "ms", "detail"]
     widths = {c: len(c) for c in cols}
     for r in rows:
@@ -184,26 +188,71 @@ async def _run_one(case: dict[str, Any]) -> dict[str, Any]:
         }
 
 
-async def _main_async(cases_path: Path, case_ids: list[str] | None, verbose: bool) -> int:
+async def run_eval(
+    cases_path: Path | None = None,
+    case_ids: list[str] | None = None,
+    verbose: bool = False,
+) -> tuple[int, list[dict[str, Any]]]:
+    """Run eval suite. Returns (exit_code, row dicts). Importable by pytest."""
+    prev_hitl = settings.hitl_enabled
+    settings.hitl_enabled = False
+    try:
+        return await _run_eval_body(cases_path, case_ids, verbose)
+    finally:
+        settings.hitl_enabled = prev_hitl
+
+
+
+def _reset_domain_db() -> None:
+    """Fresh seed so write-tool cases are not poisoned by prior tests/runs."""
+    from sqlalchemy import delete
+
+    from app.db.models import ChatMessage, ChatSession, Hazard, Ticket
+    from app.db.seed import seed_if_empty
+    from app.db.session import SessionLocal, init_db
+
+    init_db()
+    db = SessionLocal()
+    try:
+        db.execute(delete(ChatMessage))
+        db.execute(delete(ChatSession))
+        db.execute(delete(Ticket))
+        db.execute(delete(Hazard))
+        db.commit()
+    finally:
+        db.close()
+    seed_if_empty()
+
+
+async def _run_eval_body(
+    cases_path: Path | None,
+    case_ids: list[str] | None,
+    verbose: bool,
+) -> tuple[int, list[dict[str, Any]]]:
     provider = (settings.llm_provider or "").strip().lower()
-    print(f"LLM_PROVIDER={provider}  model={settings.openai_model}")
-    if provider != "openai":
+    if provider == "mock":
+        _reset_domain_db()
+    path = cases_path or _DEFAULT_CASES
+    print(f"LLM_PROVIDER={provider}  model={settings.openai_model}  hitl={settings.hitl_enabled}")
+    if provider == "mock":
+        print("模式: mock 确定性评测（CI / 本地无 key）")
+    elif provider != "openai":
         print(
-            "警告: 评测默认应对真实 LLM。"
-            "当前不是 openai；结果可能与线上控制台不一致。"
-            "请在 backend/.env 设 LLM_PROVIDER=openai。",
+            "警告: 当前不是 openai/mock；结果可能与控制台不一致。",
             file=sys.stderr,
         )
+    else:
+        print("模式: 真实 LLM 评测（需 OPENAI_API_KEY）")
 
-    cases = _load_cases(cases_path)
+    cases = _load_cases(path)
     if case_ids:
         want = set(case_ids)
         cases = [c for c in cases if c.get("id") in want]
         if not cases:
             print(f"没有匹配的 case id: {case_ids}", file=sys.stderr)
-            return 2
+            return 2, []
 
-    print(f"cases: {cases_path} ({len(cases)} 条)\n")
+    print(f"cases: {path} ({len(cases)} 条)\n")
     rows: list[dict[str, Any]] = []
     for case in cases:
         print(f"→ running {case.get('id')} …", flush=True)
@@ -217,10 +266,17 @@ async def _main_async(cases_path: Path, case_ids: list[str] | None, verbose: boo
     passed = sum(1 for r in rows if r["ok"])
     failed = len(rows) - passed
     print(f"\n小结: {passed}/{len(rows)} PASS, {failed} FAIL")
-    return 0 if failed == 0 else 1
+    return (0 if failed == 0 else 1), rows
+
+
+async def _main_async(cases_path: Path, case_ids: list[str] | None, verbose: bool) -> int:
+    code, _ = await run_eval(cases_path, case_ids, verbose)
+    return code
 
 
 def main() -> None:
+    # CLI: prefer HITL off so write-tool cases finish (settings flipped in run_eval).
+    os.environ.setdefault("HITL_ENABLED", "false")
     parser = argparse.ArgumentParser(description="EHS Agent 评测门禁（轻量）")
     parser.add_argument(
         "--cases",
