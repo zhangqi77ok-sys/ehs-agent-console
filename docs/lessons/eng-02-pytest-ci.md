@@ -39,6 +39,65 @@ python scripts\run_eval.py -v
 - `conftest` 在 import 前用临时 `DATABASE_URL`，避免污染本地 `data/ehs.db`。
 - 「缺 key 就 skip」是工程习惯：密钥进 Secrets，不进仓库。
 
+
+
+## 本机补推 GitHub Actions（重要）
+
+当前 bot 的 GitHub token **没有 `workflow` scope**，无法直接 push `.github/workflows/ci.yml`。  
+请在本机（已登录且含 workflow 权限的账号）执行一次：
+
+```powershell
+cd F:\ehs-agent-console
+git pull
+mkdir -Force .github\workflows
+@'
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        env:
+          LLM_PROVIDER: mock
+          DATABASE_URL: sqlite:///./data/ci_test.db
+        run: |
+          mkdir -p data
+          pytest -q --tb=short
+
+      - name: Remind eval is local-only without secrets
+        run: |
+          echo "LLM eval (scripts/run_eval.py) is intentionally not run in CI without OPENAI_API_KEY."
+@' | Set-Content -Encoding utf8 .github\workflows\ci.yml
+git add .github/workflows/ci.yml
+git commit -m "ci: add pytest GitHub Actions (eng-02)"
+git push
+```
+
+然后打开仓库 Actions 页确认 **ci** 变绿。
+
 ## 验收清单（Definition of Done）
 
 - [ ] `pip install -r requirements.txt` 后本地 `pytest -q` 全绿  
