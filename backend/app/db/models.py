@@ -61,3 +61,61 @@ class AuditEvent(Base):
     payload_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     ok: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+
+class AgentRun(Base):
+    """Durable agent run with checkpoint JSON (Ch4)."""
+
+    __tablename__ = "agent_runs"
+
+    run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    role: Mapped[str] = mapped_column(String(32), nullable=False, default="ehs_engineer")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    message: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    reply: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    error: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    checkpoint_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    steps_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    budget_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    budget_max: Mapped[int] = mapped_column(Integer, nullable=False, default=8)
+    session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class AgentSpan(Base):
+    """Span-level trace for one agent run (Ch5)."""
+
+    __tablename__ = "agent_spans"
+
+    span_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    parent_span_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False, default="note")
+    name: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="ok")
+    step_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    duration_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    attrs_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    input_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    output_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AgentApproval(Base):
+    """HITL approval for write tools (Ch5)."""
+
+    __tablename__ = "agent_approvals"
+
+    approval_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    tool_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    arguments_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    call_id: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
+    decided_by: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
