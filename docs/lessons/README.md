@@ -24,3 +24,4 @@
 3. Day7 精读 [面试讲法](../interview.md)，对着控制台练口述。
 4. Week2 从 [08 · 向量 RAG](./08-vector-rag.md) 继续。
 5. 做完思考题后，对照 Issue [#1](https://github.com/zhangqi77ok-sys/ehs-agent-console/issues/1) 勾 Day 清单。
+- [09 · EHS 闭环域](09-ehs-domain.md)

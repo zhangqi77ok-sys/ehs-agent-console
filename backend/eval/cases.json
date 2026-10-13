@@ -5,7 +5,7 @@
     "input": "有哪些待整改的隐患？请列出未闭环的。",
     "expect": {
       "tools_required": ["list_open_hazards"],
-      "reply_keywords_any": ["HZ-2026-001", "灭火器", "待整改"],
+      "reply_keywords_any": ["HZ-2026-001", "灭火器", "待整改", "重大"],
       "must_have_final": true,
       "must_succeed": true
     }
@@ -27,7 +27,18 @@
     "input": "有哪些重大隐患？",
     "expect": {
       "tools_any": ["query_hazard_ledger", "list_open_hazards"],
-      "reply_keywords_any": ["HZ-2026-002", "配电", "重大"],
+      "reply_keywords_any": ["重大", "HZ-2026-002", "HZ-2026-004", "配电", "冲压"],
+      "must_have_final": true,
+      "must_succeed": true
+    }
+  },
+  {
+    "id": "query_overdue",
+    "name": "查逾期隐患",
+    "input": "哪些隐患已经逾期了？",
+    "expect": {
+      "tools_any": ["query_hazard_ledger", "list_open_hazards"],
+      "reply_keywords_any": ["逾期", "HZ-2026-002", "HZ-2026-004", "HZ-2026-007"],
       "must_have_final": true,
       "must_succeed": true
     }
@@ -63,6 +74,17 @@
     "expect": {
       "tools_required": ["create_corrective_ticket"],
       "reply_keywords_any": ["CA-", "整改单", "HZ-2026-001", "灭火器"],
+      "must_have_final": true,
+      "must_succeed": true
+    }
+  },
+  {
+    "id": "advance_ticket",
+    "name": "推进整改单验收关闭",
+    "input": "把整改单 CA-102 验收关闭，说明：盘点与双人双锁已复核通过",
+    "expect": {
+      "tools_required": ["advance_corrective_ticket"],
+      "reply_keywords_any": ["CA-102", "关闭", "闭环", "验收"],
       "must_have_final": true,
       "must_succeed": true
     }
