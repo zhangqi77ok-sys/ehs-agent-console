@@ -1,165 +1,48 @@
-# EHS 隐患闭环 Agent 控制台
+# EHS 隐患闭环 Agent 控制台（v2 重写中）
 
-> 作品集项目：用 **Python FastAPI 手写 Agent 循环** + **Vite/React 可视化控制台**（左聊天 / 右步骤·工具·预算），演示 EHS 隐患查询、开整改单、法规摘要检索。
+> 作品集项目：先把 **EHS 领域**做硬，再叠 **手写 Agent 循环** 与可视化控制台。  
+> 当前进度：**第 1 章 · 领域底座**（台账 + 整改单状态机 + REST + 素控制台）。
 
-默认走 **真实 OpenAI 兼容 LLM**（需配置 `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL`）。仅离线演示时可显式设 `LLM_PROVIDER=mock`。
+旧版「一周堆完」课记已归档到 [`docs/lessons/_archive/v1/`](docs/lessons/_archive/v1/)。课纲见 [`docs/curriculum.md`](docs/curriculum.md)。
 
-## 动机
+## 第 1 章你能演示什么
 
-- Agent 应用岗默认要求 Python + 工具调用 + RAG + 可观测。
-- 结合本人 EHS 业务背景，做一个**能写进简历的垂直域 Agent**，比泛化聊天机器人更有说服力。
-- 先手写循环，再谈框架——面试能讲清底层机制。
+- 12 条跨车间隐患（消防/电气/机械/危化/动火/有限空间/环保…），含重大、逾期、待验收
+- 整改单状态机：待执行 → 执行中 → 待验收 → 已关闭（与台账联动；已闭环拒开单）
+- REST：`/api/hazards`、`/api/tickets`、`/api/tickets/{id}/advance`、`/api/domain/summary`
+- 前端：表格 + 开单/推进表单（**不依赖聊天**）
 
-## 功能（MVP）
+Agent / SSE / RAG / 评测门禁：代码仍在仓库里，但**教学主线从第 2 章起按新标准重做**，不以旧课记为准。
 
-| 能力 | 说明 |
-|------|------|
-| 查隐患台账 | `query_hazard_ledger`（内存示例数据） |
-| 开整改单 | `create_corrective_ticket` |
-| 法规摘要 | `search_regulations`（切块 + 嵌入 + **FAISS**；网关 embeddings 优先，TF-IDF 兜底） |
-| 可视化（SSE） | 左侧对话，右侧**实时**刷步骤 / 工具 / 预算（`POST /api/chat`） |
-| 可靠性 | LLM/工具超时 + 退避重试；前端「强制超时」练习 |
-| 评测门禁 | `backend/eval/cases.json` + `scripts/run_eval.py`（真实 LLM） |
-| Demo 打磨 | 顶栏健康/预算/评测 chip；预算熔断着色；错误可行动提示 |
+## 配置
 
-试试这些问题：
-
-- 「查一下灭火器相关隐患」
-- 「有哪些重大隐患？」
-- 「给 HZ-2026-001 开整改单，措施：更换过期灭火器」
-- 「有哪些重大且已逾期的隐患？」
-- 「把整改单 CA-102 验收关闭…」
-- 「隐患闭环的法规要求是什么？」
-
-## 目录
-
-```
-backend/          FastAPI + Agent 循环 + 工具
-frontend/         Vite + React 控制台
-docs/architecture.md
-docs/lessons/     每次改动的中文教学文档（跟练用）
+```powershell
+cd F:\ehs-agent-console\backend
+copy .env.example .env
+# 第 1 章跟练领域可不配 LLM；第 2 章起再配 OPENAI_* 
 ```
 
-## 配置（必填）
+## 本地运行（PowerShell）
 
-```bash
-cd backend
-cp .env.example .env
-# 编辑 .env：
-# LLM_PROVIDER=openai          # 默认；离线才设 mock
-# OPENAI_API_KEY=sk-...
-# OPENAI_BASE_URL=http://HOST:7863/v1   # 须含 /v1；或 https://api.openai.com/v1
-# OPENAI_MODEL=glm-5.3-flash            # 网关实际模型名
-```
-
-`.env` 已在 `.gitignore` 中，**切勿提交密钥**。缺 Key / Base URL 时接口会返回明确错误，不会静默降级到 mock。
-
-## 本地运行
-
-### 1. 后端
-
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```powershell
+# 后端
+cd F:\ehs-agent-console\backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
-```
 
-健康检查：<http://127.0.0.1:8000/health>
-
-### 2. 前端
-
-```bash
-cd frontend
+# 前端（另开终端）
+cd F:\ehs-agent-console\frontend
 npm install
 npm run dev
 ```
 
-打开 Vite 提示的地址（默认 <http://127.0.0.1:5173>）。开发服务器已把 `/api` 代理到后端。
+健康检查：<http://127.0.0.1:8000/health>（应含 `"chapter": 1`）
 
-### 一键心智模型
+## 课记
 
-```bash
-# 终端 A
-cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
-# 终端 B
-cd frontend && npm run dev
-```
-
-## 流式步骤（SSE）
-
-前端默认走 `POST /api/chat`（`text/event-stream`）。事件顺序大致为：
-
-`budget` → `step_start` → `tool_call` → `tool_result` → … → `final` → `done`
-
-右栏在收到 `tool_call` / `tool_result` / `final` 时立刻追加，不必等整轮结束。脚本或 curl 可用非流式：`POST /api/chat/complete`。
-
-## 面试可以怎么讲
-
-完整讲法（30 秒故事、架构、Q&A、Demo 剧本）见 **[docs/interview.md](docs/interview.md)**。
-
-速记：
-
-1. **问题**：EHS 现场要查台账、开单、对照制度，人工慢且难追踪 Agent 决策过程。
-2. **方案**：手写 ReAct 风格循环；工具边界清晰；SSE 把每一步暴露出来（可观测）。
-3. **取舍**：默认真实模型；台账先内存示例；RAG 已上本地向量检索（FAISS），会话/权限仍后置。
-4. **工程信号**：步数预算熔断、超时退避重试、5 条评测脚本门禁、控制台状态/错误可行动。
-
-更细的设计见 [docs/architecture.md](docs/architecture.md)。
-
-## Week1 进度
-
-| Day | 内容 | 状态 |
-|-----|------|------|
-| 1–2 | 脚手架 + 真实 LLM + SSE 步骤可视化 | ✅ |
-| 3 | `list_open_hazards` 工具 | ✅ |
-| 4 | 超时/重试 + 前端强制超时练习 | ✅ |
-| 5 | 评测集门禁（5 cases） | ✅ |
-| 6 | 控制台打磨（状态栏/预算熔断/错误文案/评测露出） | ✅ |
-| 7 | [面试讲法](docs/interview.md) | ✅ |
-
-## Week2 进度
-
-| Day | 内容 | 状态 |
-|-----|------|------|
-| 1 | 本地向量 RAG（切块 + FAISS + 网关/本地嵌入） | ✅ 见 [08 · 向量 RAG](docs/lessons/08-vector-rag.md) |
-| 2+ | 多轮会话 / 更严引用评测 | 规划中 |
-
-重建索引：
-
-```bash
-cd backend && source .venv/bin/activate
-pip install -r requirements.txt
-python scripts/build_rag_index.py --force
-```
-
-可选 `.env`：`OPENAI_EMBEDDING_MODEL=…`（网关支持 `/v1/embeddings` 时）；不通则自动 `local_tfidf`。
-
-## 教学文档
-
-每次代码改动都会写一篇中文教学文档（目标、关键代码、跟练、思考题），目录见 [docs/lessons/](docs/lessons/README.md)。
-
-- [01 · SSE 流式步骤](docs/lessons/01-sse-agent-steps.md)
-- [02 · 给 Agent 加新工具](docs/lessons/02-add-agent-tool.md)
-- [03 · 超时与重试](docs/lessons/03-timeout-retry.md)
-- [04 · 前端「强制超时」练习](docs/lessons/04-frontend-timeout-drill.md)
-- [05 · 评测集（门禁）](docs/lessons/05-eval-set.md)
-- [06 · 控制台打磨](docs/lessons/06-polish.md)
-- [07 · 面试复盘](docs/lessons/07-interview.md) → 主文 [docs/interview.md](docs/interview.md)
-
-## 评测门禁（Week1 Day5）
-
-固定业务用例（含法规向量 RAG 断言），走与 UI 相同的 `run_agent`（真实 LLM），断言工具名 + 回答关键词；挂了非零退出码。
-
-```bash
-cd backend
-source .venv/bin/activate
-python scripts/run_eval.py -v
-# 单条：python scripts/run_eval.py --only list_open_hazards
-```
-
-说明见 [docs/lessons/05-eval-set.md](docs/lessons/05-eval-set.md)。
+- [01 · 领域底座](docs/lessons/01-domain.md)
 
 ## License
 

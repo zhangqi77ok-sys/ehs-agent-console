@@ -1,4 +1,4 @@
-"""EHS Agent Console API."""
+"""EHS Agent Console API — Chapter 1 focus: domain REST. Agent/SSE kept for later chapters."""
 
 from __future__ import annotations
 
@@ -12,10 +12,14 @@ from pydantic import BaseModel, Field
 
 from .agent.llm import LLMCallError, LLMConfigError
 from .agent.loop import run_agent, stream_agent
+from .api.domain import router as domain_router
 from .config import settings
-from .tools.hazard_ledger import list_tickets, query_hazard_ledger
 
-app = FastAPI(title="EHS Agent Console", version="0.3.2")
+app = FastAPI(
+    title="EHS Agent Console",
+    version="1.0.0-ch1",
+    description="Chapter 1: EHS domain foundation (hazards + CAPA REST). Agent UI returns in Chapter 2.",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,11 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(domain_router)
+
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     history: list[dict[str, Any]] = Field(default_factory=list)
-    # Teaching drill: frontend 「练习：强制超时」 — tiny LLM timeout for this turn only.
     force_timeout: bool = False
 
 
@@ -41,39 +46,29 @@ class ChatResponse(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    from .tools.hazard_ledger import query_hazard_ledger, list_corrective_tickets
     from .tools.registry import TOOLS
 
+    hazards = query_hazard_ledger()
+    tickets = list_corrective_tickets()
     return {
         "status": "ok",
+        "chapter": 1,
+        "focus": "domain",
+        "hazard_count": hazards["count"],
+        "ticket_count": tickets["count"],
+        "as_of": hazards.get("as_of"),
         "llm_provider": settings.llm_provider,
-        "llm_timeout_s": settings.llm_timeout_s,
-        "llm_max_retries": settings.llm_max_retries,
-        "llm_retry_backoff_s": settings.llm_retry_backoff_s,
-        "tool_timeout_s": settings.tool_timeout_s,
-        "max_agent_steps": settings.max_agent_steps,
         "tool_count": len(TOOLS),
-        "eval_cases": "backend/eval/cases.json",
-        "eval_cmd": "python scripts/run_eval.py -v",
+        "note": "Chapter 1 = domain REST + thin console. Agent chat is Chapter 2+.",
     }
 
 
-@app.get("/api/hazards")
-def api_hazards(keyword: str = "", status: str = "", level: str = "") -> dict:
-    return query_hazard_ledger(keyword=keyword, status=status, level=level)
-
-
-@app.get("/api/tickets")
-def api_tickets() -> dict:
-    return {"items": list_tickets()}
+# --- Chapter 2+ (kept, not the Ch1 UI path) ---
 
 
 @app.post("/api/chat")
 async def api_chat(body: ChatRequest) -> StreamingResponse:
-    """Primary chat endpoint: SSE stream of agent steps (live).
-
-    Events: step_start | tool_call | tool_result | final | budget | note | done | error
-    """
-
     async def event_gen():
         try:
             async for evt in stream_agent(
@@ -101,7 +96,6 @@ async def api_chat(body: ChatRequest) -> StreamingResponse:
 
 @app.post("/api/chat/complete", response_model=ChatResponse)
 async def api_chat_complete(body: ChatRequest) -> ChatResponse:
-    """Non-stream JSON (scripts / smoke tests). Prefer /api/chat for the UI."""
     try:
         result = await run_agent(
             body.message, body.history, force_timeout=body.force_timeout
