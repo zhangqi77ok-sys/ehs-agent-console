@@ -30,9 +30,28 @@ class Settings(BaseSettings):
     hitl_enabled: bool = True
     hitl_write_tools: str = "create_corrective_ticket,advance_corrective_ticket"
 
+    # Auth (Ch8): hybrid JWT / API key / demo headers
+    jwt_secret: str = "ehs-dev-secret-change-me-32b-min!!!!"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 480
+    api_keys_json: str = '{"demo-key":{"tenant_id":"demo-plant","role":"ehs_engineer","actor":"api-key-demo"}}'
+    auth_require_credential: bool = False  # False = allow X-Tenant-Id demo headers
+
+    # Observability (Ch8)
+    access_log_json: bool = True
+
     @property
     def hitl_write_tool_set(self) -> set[str]:
         return {x.strip() for x in self.hitl_write_tools.split(",") if x.strip()}
+
+    @property
+    def api_key_map(self) -> dict:
+        import json
+        try:
+            data = json.loads(self.api_keys_json or "{}")
+            return data if isinstance(data, dict) else {}
+        except json.JSONDecodeError:
+            return {}
 
 
 settings = Settings()

@@ -1,6 +1,6 @@
 # ehs-agent-console
 
-EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch7 完成**）。工具只调领域层（CAPA / ACL / 审计），不旁路。
+EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch8 完成**（就业补强进行中））。工具只调领域层（CAPA / ACL / 审计），不旁路。
 
 - 大纲：[`docs/curriculum.md`](docs/curriculum.md)
 - 面试：[`docs/interview.md`](docs/interview.md) · 简历：[`docs/resume-project.md`](docs/resume-project.md)
@@ -18,7 +18,7 @@ cd frontend && npm install && npm run dev
 
 浏览器 http://127.0.0.1:5173 ：**Domain** / **Agent** / **Runtime**。
 
-身份头：`X-Tenant-Id`、`X-Role`（`viewer` | `ehs_engineer` | `admin`）。
+身份：演示仍可用头 `X-Tenant-Id` / `X-Role`；也支持 `POST /auth/token` 发 JWT，或 `X-API-Key: demo-key`。响应带 `X-Request-Id`。
 
 ### 测试 / Eval
 

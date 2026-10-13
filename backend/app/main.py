@@ -7,11 +7,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.agent import router as agent_router
+from app.api.auth import router as auth_router
 from app.api.runs import router as runs_router
 from app.api.audit import router as audit_router
 from app.api.domain import router as domain_router
 from app.api.health import router as health_router
 from app.config import settings
+from app.middleware.observability import RequestIdAccessLogMiddleware
 from app.db.seed import seed_if_empty
 from app.db.session import SessionLocal
 
@@ -44,7 +46,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(RequestIdAccessLogMiddleware)
     app.include_router(health_router)
+    app.include_router(auth_router)
     app.include_router(domain_router)
     app.include_router(audit_router)
     app.include_router(agent_router)
