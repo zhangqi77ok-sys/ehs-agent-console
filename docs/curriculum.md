@@ -15,7 +15,7 @@
 | Ch7 | 面试追问 + 简历段 | ✅ | [ch7-interview](./lessons/ch7-interview.md) |
 | Ch8 | JWT/API Key 鉴权 + request_id 访问日志（多租户可讲） | ✅ | [ch8-auth-obs](./lessons/ch8-auth-obs.md) |
 | Ch9 | 法规/制度向量 RAG 工具（切块+检索，可 mock embedding） | ✅ | [ch9-rag](./lessons/ch9-rag.md) |
-| Ch10 | 会话记忆分层 + 上下文压缩（长对话不炸预算） | ⏳ | — |
+| Ch10 | 会话记忆分层 + 上下文压缩（长对话不炸预算） | ✅ | [ch10-memory](./lessons/ch10-memory.md) |
 | Ch11 | Supervisor 多 Agent（排查员/开单员）真派发 | ⏳ | — |
 | Ch12 | 就业包：JD 对照表 + Demo 脚本 + 作品集 README | ⏳ | — |
 

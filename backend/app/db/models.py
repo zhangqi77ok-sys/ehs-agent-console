@@ -119,3 +119,19 @@ class AgentApproval(Base):
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AgentSession(Base):
+    """Chat session message store (Ch10)."""
+
+    __tablename__ = "agent_sessions"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
+    actor: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    messages_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    summary: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

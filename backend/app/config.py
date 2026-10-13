@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     # Observability (Ch8)
     access_log_json: bool = True
 
+    # Memory (Ch10)
+    memory_max_chars: int = 2000
+    memory_keep_recent: int = 4
+
     @property
     def hitl_write_tool_set(self) -> set[str]:
         return {x.strip() for x in self.hitl_write_tools.split(",") if x.strip()}

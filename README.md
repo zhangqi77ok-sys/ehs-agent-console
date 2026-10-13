@@ -1,6 +1,6 @@
 # ehs-agent-console
 
-EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch9 完成**（就业补强进行中））。工具只调领域层（CAPA / ACL / 审计），不旁路。
+EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch10 完成**（就业补强进行中））。工具只调领域层（CAPA / ACL / 审计），不旁路。
 
 - 大纲：[`docs/curriculum.md`](docs/curriculum.md)
 - 面试：[`docs/interview.md`](docs/interview.md) · 简历：[`docs/resume-project.md`](docs/resume-project.md)
