@@ -9,6 +9,7 @@ EHS 领域台账 + 手写 Agent Runtime（**Ch1–Ch22**）。面向成都 Agent
 | 文档 | 说明 |
 |------|------|
 | [`docs/curriculum.md`](docs/curriculum.md) | 大纲 Ch1–22 |
+| [`docs/readiness-scorecard.md`](docs/readiness-scorecard.md) | 技术维度诚实评分（非 offer 概率） |
 | [`docs/architecture.md`](docs/architecture.md) | Runtime 架构一页纸（mermaid） |
 | [`docs/jd-gap-matrix.md`](docs/jd-gap-matrix.md) | JD 关键词 → 路径/Demo |
 | [`docs/demo-script.md`](docs/demo-script.md) | 10 分钟 Demo |
