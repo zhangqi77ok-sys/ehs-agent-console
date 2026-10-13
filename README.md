@@ -68,3 +68,5 @@ cp .env.example .env && docker compose up --build
 - **Ch20** 并行 Multi-Agent + parallel 徽章  
 - **Ch21** 可选 Live LLM Eval（默认 skip）  
 - **Ch22** 就绪评分卡  
+
+- 过面概率怎么抬：[interview-odds-playbook](docs/interview-odds-playbook.md)

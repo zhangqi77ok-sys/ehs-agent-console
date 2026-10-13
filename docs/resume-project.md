@@ -22,3 +22,8 @@ EHS Agent 控制台：领域 CAPA/ACL/审计 + 手写 Runtime（SSE/Durable/HITL
 ## 版本 C（English）
 
 **EHS Corrective-Action Agent Console** — Domain-first CAPA (evidence-gated close, tenant ACL, append-only audit); handwritten agent runtime with tool allowlists, SSE, durable pause/resume, HITL on writes, span replay, deterministic mock eval; JWT/API-key auth with request_id logs; regulations RAG; session memory compression; supervisor multi-agent (investigator/clerk timelines).
+
+
+## 投递时一句自信版（可直接用）
+
+独立设计并实现 EHS 隐患闭环 Agent 控制台（FastAPI + React）：手写 Agent Runtime（SSE、checkpoint 续跑、HITL、Trace/Replay）、领域状态机与审计、RAG、会话压缩、Supervisor 多 Agent（含并行）、JWT/JWKS、多维 Eval 与 Compose/Postgres。面向成都 Agent 应用/后端岗，技术点可对照 Runtime / HITL / Eval / RAG / 多租户 JD 高频词演示与答辩。
