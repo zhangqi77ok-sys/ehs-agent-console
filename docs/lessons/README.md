@@ -19,3 +19,4 @@
 - [Eng-01 持久化](./eng-01-persistence.md)
 - [Eng-02 pytest + CI](./eng-02-pytest-ci.md)
 - [Eng-03 可观测+权限](./eng-03-obs-auth.md)
+- [Eng-04 简历表述](./eng-04-resume.md)

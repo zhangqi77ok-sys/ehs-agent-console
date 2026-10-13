@@ -6,7 +6,7 @@
 
 ## 30 秒故事
 
-「我按章节重做了一个 EHS 隐患闭环 Agent 控制台：先把隐患台账和整改单状态机做成可演示的领域底座，再接手写 ReAct 循环接真 LLM；SSE 左聊右步骤；有超时重试和步数预算；固定评测脚本当门禁；法规走本地 FAISS RAG；服务端 session 保多轮；用租户/角色头做权限雏形。业务选 EHS，是因为我有现场背景。」
+「我按章节重做了一个 EHS 隐患闭环 Agent 控制台：领域侧是隐患台账和 CAPA 状态机；Agent 侧手写 ReAct 循环接真 LLM，SSE 左聊右步骤，带超时重试和步数预算；法规 FAISS RAG（embeddings 失败则 TF-IDF）；会话落库。工程上补了 SQLAlchemy/Alembic、pytest、request_id 结构化日志，以及 JWT/API Key（strict 模式不靠演示头）。业务选 EHS，是因为我有现场背景。」
 
 ## 架构
 
@@ -25,7 +25,7 @@ React：领域页 | Agent 页（租户/角色可切换）
 | 为啥不直接上 LangChain？ | 先讲清循环、工具schema、失败与预算；框架以后可换 |
 | 逾期是状态还是字段？ | 由 deadline 相对 as_of 计算，避免双写不一致 |
 | 评测怎么防 LLM 飘？ | 断言工具名 + 关键词；失败非零退出；可 `--only` |
-| 多租户生产怎么做？ | 演示用 Header；生产应接 IdP/JWT + 行级数据权限 |
+| 多租户生产怎么做？ | 已有 JWT/API Key + `AUTH_MODE=strict`；演示头仅 hybrid；生产再接 IdP 与行级权限 |
 | RAG 为啥 TF-IDF 兜底？ | 网关常无 embeddings；教学要保证可跑 |
 
 ## Demo 剧本（5 分钟）
@@ -37,3 +37,7 @@ React：领域页 | Agent 页（租户/角色可切换）
 5. 问法规闭环 → 指右栏 retrieval  
 6. 第二轮指代开单（session）  
 7. 提一句 `python scripts/run_eval.py -v`
+
+## 简历粘贴稿
+
+见 [resume-project.md](./resume-project.md)。

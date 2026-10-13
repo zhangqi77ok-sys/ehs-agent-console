@@ -22,6 +22,8 @@ Python FastAPI **手写 Agent 循环** + Vite/React（领域台账页 + Agent SS
 
 可观测/鉴权：`X-Request-Id` + JWT/API Key，`AUTH_MODE=hybrid|strict`；课记 [Eng-03](docs/lessons/eng-03-obs-auth.md)。
 
+简历项目表述：[docs/resume-project.md](docs/resume-project.md)（[Eng-04](docs/lessons/eng-04-resume.md)）。
+
 ## 运行（PowerShell）
 
 ```powershell

@@ -21,6 +21,6 @@
 | 序号 | 主题 | 状态 |
 |------|------|------|
 | Eng-01 | [持久化+迁移](./lessons/eng-01-persistence.md) | ✅ |
-| Eng-02 | pytest + GitHub Actions | 下一刀 |
-| Eng-03 | 可观测 + 认真权限 | 待做 |
-| Eng-04 | 简历项目表述 | 待做 |
+| Eng-02 | [pytest + CI](./lessons/eng-02-pytest-ci.md) | ✅ |
+| Eng-03 | [可观测+权限](./lessons/eng-03-obs-auth.md) | ✅ |
+| Eng-04 | [简历表述](./lessons/eng-04-resume.md) → [resume-project.md](./resume-project.md) | ✅ |
