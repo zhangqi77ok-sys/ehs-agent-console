@@ -1,37 +1,10 @@
-# Python
 __pycache__/
 *.py[cod]
-*.egg-info/
 .venv/
 venv/
-.env
-.env.*
-!.env.example
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Node
 node_modules/
 dist/
-.vite/
-*.local
-
-# OS / IDE
+.env
+*.db
+backend/data/
 .DS_Store
-.idea/
-.vscode/
-*.swp
-*.log
-
-# Secrets
-*.pem
-credentials.json
-
-# RAG index (rebuild with scripts/build_rag_index.py)
-backend/data/rag/
-*.pkl
-
-# eng-1 sqlite
-backend/data/*.db
-backend/data/*.db-*
