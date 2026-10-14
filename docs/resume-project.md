@@ -1,7 +1,7 @@
 # 简历项目段（成都 Agent 应用/后端 · 20–30k 口径）
 
-> ⚠️ **先别看这份——跟完 [docs/跟我学](./跟我学/README.md) 再来。**
-
+> 完整就业包（演示稿、口头题、差距清单）见 **[就业过关 · 最终版](./就业过关-最终版.md)**。  
+> 学操作先走 [最终版 · 保姆级全书](./最终版-保姆级全书.md)。
 
 > 无仓库能保证 offer；以下按可追问、可演示、可指代码来写。
 
@@ -9,24 +9,20 @@
 
 **EHS 隐患整改 Agent 控制台**｜个人项目｜Python / FastAPI / SQLAlchemy / React  
 
-- **S/T**：面向工业安全场景，要求整改可审计、可多租户，并具备可演示的 Agent Runtime（非聊天套壳）。  
-- **A1 领域**：实现隐患台账 + CAPA 状态机（关闭强制验收证据）+ 租户/角色 ACL + 只追加审计；前后端可点通闭环（`domain/capa.py`）。  
-- **A2 Runtime**：手写 Agent 循环，工具统一经领域层；SSE 推送 steps/budget；checkpoint 落库支持 pause/resume；写工具 HITL；Span Trace/Replay。  
-- **A3 质量**：`LLM_PROVIDER=mock` 确定性 Eval 进入 pytest；Docker Compose（Postgres）生产形状。  
-- **A4 就业深度**：JWT/API Key 混合鉴权 + request_id JSON 访问日志；法规 RAG（切块+本地 embedding+score）；会话记忆压缩；Supervisor 多 Agent（Investigator/Clerk 双时间线 + 工具白名单）。  
-- **R**：独立完成 Ch1–Ch12 可演示作品集；配套 JD 对照表、15 分钟口述稿、30 问模拟面试与失败演练清单，面试可指到具体路径。
+- **背景：** 工业安全场景要整改可审计、可多租户，并要能演示真正的 Agent 运行时（不是聊天套壳）。  
+- **做法：** 先做隐患台账 + 整改状态机（关单强制验收证据）+ 租户/角色权限 + 只追加审计；再手写 Agent 循环，工具统一走领域层；SSE 推步骤与预算；任务可暂停续跑；写操作人工审批；步骤可 Trace/回放；mock 评测进测试；Compose/Postgres；并补上 JWT、制度检索、会话压缩、双角色多 Agent。  
+- **结果：** 前后端可点通闭环；技术点可对照 Runtime / 审批 / 评测 / 检索 / 多租户当面演示并指到代码路径。  
 
-技术关键词：Agent Runtime · Tool Allowlist · HITL · SSE · Checkpoint · Eval · RAG · Memory · Multi-Agent · JWT · 多租户 ACL
+技术关键词：Agent 运行时 · 工具白名单 · 人工审批 · SSE · 可暂停任务 · 评测门禁 · RAG · 会话压缩 · 多 Agent · JWT · 多租户权限
 
 ## 版本 B（短）
 
-EHS Agent 控制台：领域 CAPA/ACL/审计 + 手写 Runtime（SSE/Durable/HITL/Trace/Eval）+ JWT 可观测 + 法规 RAG + 记忆压缩 + Supervisor 双角色时间线；mock 全链路可 CI。
+EHS Agent 控制台：整改关单要证据 + 权限/审计 + 手写运行时（流式/暂停/审批/回放/评测）+ JWT 可观测 + 制度检索 + 会话压缩 + 双角色协作；mock 全链路可测。
 
 ## 版本 C（English）
 
 **EHS Corrective-Action Agent Console** — Domain-first CAPA (evidence-gated close, tenant ACL, append-only audit); handwritten agent runtime with tool allowlists, SSE, durable pause/resume, HITL on writes, span replay, deterministic mock eval; JWT/API-key auth with request_id logs; regulations RAG; session memory compression; supervisor multi-agent (investigator/clerk timelines).
 
-
 ## 投递时一句自信版（可直接用）
 
-独立设计并实现 EHS 隐患闭环 Agent 控制台（FastAPI + React）：手写 Agent Runtime（SSE、checkpoint 续跑、HITL、Trace/Replay）、领域状态机与审计、RAG、会话压缩、Supervisor 多 Agent（含并行）、JWT/JWKS、多维 Eval 与 Compose/Postgres。面向成都 Agent 应用/后端岗，技术点可对照 Runtime / HITL / Eval / RAG / 多租户 JD 高频词演示与答辩。
+独立完成 EHS 隐患闭环 Agent 控制台（FastAPI + React）：手写运行时（流式、断点续跑、写操作审批、步骤回放）、领域状态机与审计、制度检索、会话压缩、双角色多 Agent、JWT、评测门禁与 Compose/Postgres。面向成都 Agent 应用/后端岗，可当面演示并指代码。
