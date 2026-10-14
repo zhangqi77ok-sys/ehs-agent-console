@@ -1,6 +1,6 @@
 # Ch22 课记：技术面天花板与诚实评分
 
-见 [`docs/readiness-scorecard.md`](../readiness-scorecard.md) 与更新后的 [`docs/jd-gap-matrix.md`](../jd-gap-matrix.md)。
+见 [`docs/面试备用/readiness-scorecard.md`](../面试备用/readiness-scorecard.md) 与更新后的 [`docs/面试备用/jd-gap-matrix.md`](../面试备用/jd-gap-matrix.md)。
 
 ## 核心口径（对用户 / 面试官）
 

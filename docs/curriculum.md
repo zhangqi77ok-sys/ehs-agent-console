@@ -1,3 +1,5 @@
+> 学习入口请走 [跟我学](./跟我学/README.md)，本文只是章节大纲。
+
 # 课程大纲（重做 · 对齐成都 Agent 应用/后端 20–30k JD）
 
 质量条：**课记可追问 · Demo 真串得起来 · 工程非贴皮**。连续交付，不卡确认。
@@ -34,4 +36,4 @@
 - 工具不得旁路领域层（状态机 + 审计）
 - `LLM_PROVIDER=mock` 必须能演示全链路；真 LLM 可选
 - 每章：代码 + 中文课记 + pytest + push main
-- **诚实**：仓库不能保证 offer；Ch13–22 只负责把技术面残留尽量抹平（见 readiness-scorecard）
+- **诚实**：仓库不能保证 offer；Ch13–22 只负责把技术面残留尽量抹平（见 [面试备用/readiness-scorecard](./面试备用/readiness-scorecard.md)）

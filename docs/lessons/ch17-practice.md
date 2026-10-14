@@ -4,8 +4,8 @@
 
 - 前端 **Practice** Tab：加载 `practice-questions.json`
 - 三档评分：完整 / 能答 / 不会 → `localStorage`
-- `docs/practice-rubric.md` 评分说明
-- 更新 `oral-15min.md`、`jd-gap-matrix.md` 残留项
+- `docs/面试备用/practice-rubric.md` 评分说明
+- 更新 `面试备用/oral-15min.md`、`面试备用/jd-gap-matrix.md` 残留项
 
 ## 怎么用
 
@@ -19,7 +19,7 @@
 A：不能。只降低技术追问空白；offer 仍看匹配与临场。
 
 **Q2：题库从哪来？**  
-A：压缩自 `mock-interview.md` + Ch13–16 新点（obs/MCP/多维 eval）。
+A：压缩自 `面试备用/mock-interview.md` + Ch13–16 新点（obs/MCP/多维 eval）。
 
 **Q3：为何本地存分？**  
 A：隐私；作品集不收集候选人数据。

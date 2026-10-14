@@ -1,6 +1,6 @@
 # Ch7 课记：面试与简历怎么讲这个项目
 
-完整追问稿：[`../interview.md`](../interview.md)  
+完整追问稿：[`../面试备用/interview.md`](../面试备用/interview.md)  
 简历粘贴段：[`../resume-project.md`](../resume-project.md)
 
 ## 讲述结构（3 分钟）

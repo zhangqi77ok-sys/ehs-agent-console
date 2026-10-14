@@ -4,14 +4,14 @@
 
 | 文档 | 用途 |
 |------|------|
-| [`jd-gap-matrix.md`](../jd-gap-matrix.md) | JD 关键词 → 路径/Demo |
-| [`demo-script.md`](../demo-script.md) | 10 分钟演示 |
-| [`oral-15min.md`](../oral-15min.md) | 15 分钟口述 |
+| [`jd-gap-matrix.md`](../面试备用/jd-gap-matrix.md) | JD 关键词 → 路径/Demo |
+| [`demo-script.md`](../面试备用/demo-script.md) | 10 分钟演示 |
+| [`oral-15min.md`](../面试备用/oral-15min.md) | 15 分钟口述 |
 | [`architecture.md`](../architecture.md) | Runtime 一页纸（mermaid） |
-| [`failure-mode-drill.md`](../failure-mode-drill.md) | 失败演练清单 |
-| [`mock-interview.md`](../mock-interview.md) | 30 问 |
+| [`failure-mode-drill.md`](../面试备用/failure-mode-drill.md) | 失败演练清单 |
+| [`mock-interview.md`](../面试备用/mock-interview.md) | 30 问 |
 | [`resume-project.md`](../resume-project.md) | STAR 简历段 |
-| [`interview.md`](../interview.md) | 追问稿（含 Ch8–11） |
+| [`interview.md`](../面试备用/interview.md) | 追问稿（含 Ch8–11） |
 
 ## 面试官追问（≥5）
 

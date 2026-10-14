@@ -1,11 +1,8 @@
-# 傻瓜式学习总览（知识点 · 痛点 · 工业落地点）
+# 傻瓜式学习总览（已降级）
 
-> **若你觉得仍然费劲**：请先只看 [保姆级入门](./保姆级入门.md)，完成「第一天」再回来。
-
-
-> 写给：觉得自己「比较笨」、不想一次啃 22 章课记的人。  
-> 用法：**一天只学一块**；每块看完，去点对应界面；再回头看「一句话」。  
-> 详细课记在 `docs/lessons/chN-*.md`，这里是地图，不是替代。
+> ⚠️ **先别从这篇学。** 主路径已改为按天保姆级：  
+> **[跟我学](./跟我学/README.md)** ← 从 Day0 / Day1 开始，一次只一天。  
+> 本文保留作「旧地图」，跟完七天若还想对照知识点，再回来翻。
 
 ---
 
@@ -19,7 +16,7 @@
 1. 先会点 **领域台账**（没 Agent）  
 2. 再开 **Agent** 看步骤  
 3. 再玩 **Runtime**（暂停、审批、Trace）  
-4. 最后刷 **练习页** + `mock-interview.md`
+4. （七天后再说）练习页 + 面试备用文件夹
 
 启动：
 
@@ -106,7 +103,7 @@ cd frontend && npm run dev
 | MCP / 工具标准化 | 工具 schema + call 适配层 | ch15（诚实：薄层，不是完整 MCP 服务器） |
 | 容器交付 | docker compose | ch6 |
 
-更细的表：`docs/jd-gap-matrix.md`。
+更细的表：`docs/面试备用/jd-gap-matrix.md`。
 
 ---
 
@@ -175,7 +172,7 @@ cd frontend && npm run dev
 ### Ch13–22（加固）
 - **一句话**：往生产 JD 再靠：指标、pgvector、MCP 薄层、多维评测、练习页、OTLP、JWKS、并行 Agent。  
 - **痛点**：面试官问「生产怎么观测/鉴权/并行」。  
-- **落地点**：见各 ch13+ 课记；上限见 `readiness-scorecard.md`。
+- **落地点**：见各 ch13+ 课记；上限见 `./面试备用/readiness-scorecard.md`。
 
 ---
 
@@ -183,7 +180,7 @@ cd frontend && npm run dev
 
 1. **先点后读**：先在页面上制造一次「失败」（无证据关单、viewer 去写），再读课记——痛点就记住了。  
 2. **每章只记三句**：一句话、一个痛点、一个落地点（上表已写好）。  
-3. **周末只刷题**：Practice 页 + `mock-interview.md`，不会的回对应章课记，别从头通读。
+3. **周末只刷题**：Practice 页 + `./面试备用/mock-interview.md`，不会的回对应章课记，别从头通读。
 
 ---
 
@@ -191,11 +188,10 @@ cd frontend && npm run dev
 
 | 你想… | 打开 |
 |-------|------|
-| 轻松总览（本文） | `docs/study-guide-easy.md` |
-| 按章细读 | `docs/lessons/chN-*.md` |
-| 章节目录 | `docs/curriculum.md` · `docs/lessons/README.md` |
-| 10 分钟演示 | `docs/demo-script.md` |
-| 抬过面概率 | `docs/interview-odds-playbook.md` |
-| 自己几分 | `docs/readiness-scorecard.md` |
+| **跟着学（主路径）** | [`docs/跟我学/`](./跟我学/README.md) |
+| 旧地图（本文） | `docs/study-guide-easy.md` |
+| 按章词典 | `docs/lessons/` |
+| 章节大纲 | `docs/curriculum.md` |
+| 面试材料（后看） | `docs/面试备用/` |
 
 有缺口也正常：生产 SSO、金标评测、真人口述——仓库写不全，你按 playbook 练即可。
