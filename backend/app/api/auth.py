@@ -1,4 +1,7 @@
-"""Auth endpoints: issue JWT for demos / integrations (Ch8)."""
+"""Auth endpoints: JWT mint / refresh / logout / me (Ch8 + SSO-lite refresh).
+
+Refresh/logout are 「企业登录前的自建 JWT 续期」— not a full Okta/OIDC IdP.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +10,11 @@ from pydantic import BaseModel, Field
 from fastapi import APIRouter, Header, HTTPException
 from typing import Annotated
 
-from app.auth.jwt_tokens import decode_token, issue_token
+from app.auth.jwt_tokens import (
+    issue_token,
+    logout_refresh_token,
+    refresh_access_token,
+)
 from app.auth.tenant import ROLES
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -20,6 +27,14 @@ class TokenRequest(BaseModel):
     expires_minutes: int | None = None
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
+
+
 @router.post("/token")
 def create_token(body: TokenRequest) -> dict:
     if body.role not in ROLES:
@@ -29,7 +44,20 @@ def create_token(body: TokenRequest) -> dict:
         role=body.role,
         actor=body.actor,
         expires_minutes=body.expires_minutes,
+        include_refresh=True,
     )
+
+
+@router.post("/refresh")
+def refresh_token(body: RefreshRequest) -> dict:
+    """Rotate access (and refresh) from a valid refresh token."""
+    return refresh_access_token(body.refresh_token, rotate_refresh=True)
+
+
+@router.post("/logout")
+def logout(body: LogoutRequest) -> dict:
+    """Invalidate refresh token jti (access token still expires by itself)."""
+    return logout_refresh_token(body.refresh_token)
 
 
 @router.get("/me")

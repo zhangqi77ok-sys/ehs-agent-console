@@ -75,3 +75,16 @@ def test_agent_calls_search_regulations(client, eng_headers, monkeypatch):
     tools = [s.get("name") for s in body.get("steps") or [] if s.get("kind") == "tool_call"]
     assert "search_regulations" in tools
     assert any(k in (body.get("reply") or "") for k in ("制度", "灭火器", "消防", "片段"))
+
+
+def test_tenant_filter_excludes_other_plant():
+    from app.rag.store import RegulationsStore, reset_regulations_store
+
+    reset_regulations_store()
+    store = RegulationsStore.from_dir()
+    demo_hits = store.search("灭火器", top_k=5, tenant_id="demo-plant")
+    assert demo_hits
+    assert all(h["tenant_id"] == "demo-plant" for h in demo_hits)
+    other_hits = store.search("蓝色安全帽", top_k=5, tenant_id="other-plant")
+    assert other_hits
+    assert all(h["tenant_id"] == "other-plant" for h in other_hits)

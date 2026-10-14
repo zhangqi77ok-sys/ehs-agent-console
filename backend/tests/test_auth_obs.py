@@ -79,3 +79,29 @@ def test_jwt_viewer_cannot_write(client):
         json={"hazard_id": "HZ-2026-001", "measures": "x", "owner": "a"},
     )
     assert r.status_code == 403
+
+
+def test_refresh_and_logout_flow(client):
+    from app.auth.refresh_store import reset_revocations
+
+    reset_revocations()
+    body = client.post(
+        "/auth/token",
+        json={"tenant_id": "demo-plant", "role": "admin", "actor": "admin-1"},
+    ).json()
+    refresh = body["refresh_token"]
+    r = client.post("/auth/refresh", json={"refresh_token": refresh})
+    assert r.status_code == 200
+    assert r.json()["access_token"]
+    new_refresh = r.json()["refresh_token"]
+    out = client.post("/auth/logout", json={"refresh_token": new_refresh})
+    assert out.status_code == 200
+    assert client.post("/auth/refresh", json={"refresh_token": new_refresh}).status_code == 401
+
+
+def test_traceparent_echo(client):
+    tp = "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01"
+    r = client.get("/health", headers={"traceparent": tp})
+    assert r.headers.get("traceparent", "").startswith(
+        "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-"
+    )

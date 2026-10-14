@@ -6,6 +6,9 @@
 **就业过关（最终版）→ [docs/就业过关-最终版.md](docs/就业过关-最终版.md)**  
 （大白话对齐成都 Agent 应用/后端岗：硬本事对照、10 分钟演示、简历段、口头常问、诚实差距。）
 
+**主管过关（技术门槛）→ [docs/主管过关-录用标准.md](docs/主管过关-录用标准.md)**  
+（研发主管视角二进制清单 + `pytest` 门禁。**是技术过关，不是录用保证。**）
+
 可选：[想拆天练也可以 → docs/跟我学/](docs/跟我学/README.md)
 
 EHS 领域台账 + 手写 Agent Runtime（Ch1–Ch22）。人可以在网页改隐患/整改单；AI 助手也能查、也能帮开单——但改数据走同一套规矩。
@@ -28,6 +31,7 @@ cd frontend && npm install && npm run dev
 
 ```bash
 cd backend && source .venv/bin/activate && pytest -q
+pytest -q tests/test_hire_gate.py   # 主管过关门禁（子集）
 LLM_PROVIDER=mock python scripts/run_eval.py -v
 ```
 
@@ -43,6 +47,7 @@ cp .env.example .env && docker compose up --build
 |------|------|
 | **一次看完（学操作）** | **[最终版保姆级全书](docs/最终版-保姆级全书.md)** ← 主入口 |
 | **冲就业** | **[就业过关最终版](docs/就业过关-最终版.md)** ← 演示 / 简历 / 口头题 |
+| **主管技术过关** | **[主管过关-录用标准](docs/主管过关-录用标准.md)** ← 勾选 + hire_gate（**非录用保证**） |
 | 拆天练 | [跟我学](docs/跟我学/README.md)（可选） |
 | 查某章细节 | [课记词典](docs/lessons/README.md)（全书摸完再用） |
 | 看架构一页纸 | [architecture.md](docs/architecture.md) |

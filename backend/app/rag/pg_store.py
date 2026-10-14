@@ -1,4 +1,7 @@
-"""Postgres-backed RAG chunk store (Ch14). Falls back to in-memory if not postgres."""
+"""Postgres-backed RAG chunk store (Ch14). Falls back to in-memory if not postgres.
+
+Tenant-scoped search: filter by tenant_id (hire-gate).
+"""
 
 from __future__ import annotations
 
@@ -10,7 +13,7 @@ from sqlalchemy import delete, select, text
 from app.config import settings
 from app.db.models import RegulationChunk
 from app.db import session as db_session
-from app.rag.chunk import load_markdown_dir
+from app.rag.chunk import load_all_tenant_corpora
 from app.rag.embed import cosine, embed_text
 from app.rag.store import _DEFAULT_DIR, get_regulations_store
 
@@ -24,7 +27,7 @@ def sync_chunks_to_db(root=None, *, dim: int = 256) -> int:
     """Load markdown regulations into regulation_chunks (idempotent replace)."""
     if not is_postgres_url():
         return 0
-    chunks = load_markdown_dir(root or _DEFAULT_DIR)
+    chunks = load_all_tenant_corpora(root or _DEFAULT_DIR)
     db = db_session.SessionLocal()
     try:
         db.execute(delete(RegulationChunk))
@@ -32,6 +35,7 @@ def sync_chunks_to_db(root=None, *, dim: int = 256) -> int:
             vec = embed_text(c["text"], dim=dim)
             row = RegulationChunk(
                 id=c["id"],
+                tenant_id=c.get("tenant_id") or "demo-plant",
                 source=c.get("source") or "",
                 text=c["text"],
                 embedding_json=json.dumps(vec),
@@ -39,7 +43,6 @@ def sync_chunks_to_db(root=None, *, dim: int = 256) -> int:
             )
             db.add(row)
         db.commit()
-        # best-effort fill vector column if present
         try:
             db.execute(text(
                 "UPDATE regulation_chunks SET embedding = embedding_json::vector "
@@ -59,16 +62,35 @@ class PostgresRegulationsStore:
     def __init__(self, dim: int = 256):
         self.dim = dim
 
-    def search(self, query: str, *, top_k: int = 3) -> list[dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        *,
+        top_k: int = 3,
+        tenant_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         db = db_session.SessionLocal()
         try:
-            rows = list(db.scalars(select(RegulationChunk)).all())
-            if not rows:
-                # auto-seed once
+            q_rows = select(RegulationChunk)
+            tid = (tenant_id or "").strip() or None
+            if tid:
+                q_rows = q_rows.where(RegulationChunk.tenant_id == tid)
+            rows = list(db.scalars(q_rows).all())
+            if not rows and not tid:
                 db.close()
                 sync_chunks_to_db(dim=self.dim)
                 db = db_session.SessionLocal()
                 rows = list(db.scalars(select(RegulationChunk)).all())
+            elif not rows and tid:
+                # try seed then re-filter
+                db.close()
+                sync_chunks_to_db(dim=self.dim)
+                db = db_session.SessionLocal()
+                rows = list(
+                    db.scalars(
+                        select(RegulationChunk).where(RegulationChunk.tenant_id == tid)
+                    ).all()
+                )
             q = embed_text(query, dim=self.dim)
             scored = []
             for row in rows:
@@ -87,6 +109,7 @@ class PostgresRegulationsStore:
                         "source": row.source,
                         "text": row.text,
                         "score": round(float(score), 4),
+                        "tenant_id": getattr(row, "tenant_id", "") or "",
                         "backend": "postgres",
                     }
                 )

@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "ehs-dev-secret-change-me-32b-min!!!!"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
+    jwt_refresh_expire_days: int = 14  # SSO-lite refresh TTL
     api_keys_json: str = '{"demo-key":{"tenant_id":"demo-plant","role":"ehs_engineer","actor":"api-key-demo"}}'
     auth_require_credential: bool = False  # False = allow X-Tenant-Id demo headers
     auth_jwks_url: str = ""  # Ch19: JWKS URL for RS256; empty = HS256 only

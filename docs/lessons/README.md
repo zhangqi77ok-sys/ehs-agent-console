@@ -28,6 +28,7 @@
 | 19 | [ch19-oidc](./ch19-oidc.md) | 可选：用公钥校验登录令牌 |
 | 20 | [ch20-parallel-agents](./ch20-parallel-agents.md) | 多个角色并行干活 |
 | 21 | [ch21-live-llm-eval](./ch21-live-llm-eval.md) | 可选：真模型评测（默认跳过） |
+| — | [hire-gate-主管过关](./hire-gate-主管过关.md) | JWT 续期登出、traceparent、租户 RAG、过关门禁 |
 | 22 | [ch22-ceiling](./ch22-ceiling.md) | 能力边界与诚实说明 |
 
 口诀：**跟我学点界面 → 卡住再查本章 → 仍不懂再问人。**

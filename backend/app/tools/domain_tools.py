@@ -176,12 +176,13 @@ def search_regulations(
     if not q:
         return {"ok": False, "error": "query 不能为空"}
     store = get_active_regulations_store()
-    hits = store.search(q, top_k=int(top_k or 3))
+    hits = store.search(q, top_k=int(top_k or 3), tenant_id=ctx.tenant_id)
     return {
         "ok": True,
         "result": {
             "query": q,
             "hits": hits,
             "count": len(hits),
+            "tenant_id": ctx.tenant_id,
         },
     }

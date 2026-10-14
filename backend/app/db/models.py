@@ -143,6 +143,7 @@ class RegulationChunk(Base):
     __tablename__ = "regulation_chunks"
 
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False, default="demo-plant")
     source: Mapped[str] = mapped_column(String(256), nullable=False, default="")
     text: Mapped[str] = mapped_column(Text, nullable=False, default="")
     embedding_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
